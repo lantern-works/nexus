@@ -17,8 +17,10 @@ html(lang="en")
         script(src="//cdn.jsdelivr.net/npm/latlon-geohash@1.1.0/latlon-geohash.js")
 
         // styles
-        link(rel="stylesheet" href="https://unpkg.com/leaflet@1.3.4/dist/leaflet.css")
-        link(rel="stylesheet" href="https://cdn.klokantech.com/mapbox-gl-js/v0.43.0/mapbox-gl.css")
+        link(rel="stylesheet" href="//unpkg.com/leaflet@1.3.4/dist/leaflet.css")
+        link(rel="stylesheet" href="//cdn.klokantech.com/mapbox-gl-js/v0.43.0/mapbox-gl.css")
+        link(rel="stylesheet" href="//use.fontawesome.com/releases/v5.2.0/css/all.css" integrity="sha384-hWVjflwFxL6sNzntih27bfxkr27PmbbK/iSvJ+a4+0owXq79v+lsFkW54bOGbiDQ" crossorigin="anonymous")
+        link(rel="stylesheet" href="/global.css")
         block styles
 
     body
@@ -31,5 +33,9 @@ html(lang="en")
 
 
         #map
+
+
+
+        script(src="/global.js")
 
         block scripts

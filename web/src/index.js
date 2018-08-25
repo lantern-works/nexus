@@ -9,6 +9,18 @@ var gl = L.mapboxGL({
 }).addTo(map);
 
 
+function drawMarker(geohash) {
+	var latlon = Geohash.decode(geohash);
+	console.log()
+	var opts = {};
+    opts.icon = L.icon.fontAwesome({ 
+        markerColor: "#3273dc",
+        markerStroke: "#FFF",
+        iconColor: '#FFF'
+    });        
+	var marker = L.marker(latlon, opts).addTo(map);
+}
+
 // model
 var db = new PouchDB("https://lantern.global/db/lnt");
 console.log(db);
@@ -21,8 +33,7 @@ db.find({
 	result.docs.forEach(function(venue) {
 		console.log(venue);
 		venue.gp.forEach(function(geohash) {
-			var latlon = Geohash.decode(geohash);
-			console.log(latlon);
+			drawMarker(geohash);
 		})
 	})
 });
