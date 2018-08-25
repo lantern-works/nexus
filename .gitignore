@@ -1,2 +1,6 @@
 .DS_Store
 node_modules
+
+# Python cache
+__pycache__
+*.pyc

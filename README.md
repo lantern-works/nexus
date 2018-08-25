@@ -6,5 +6,5 @@ Cloud utilities to manage and find trends in data on the [Lantern Network](https
 ### Installation
 
 ```python
-pip install pycouchdb
+pip3 install -r ./exp/lantern/requirements.txt
 ```
