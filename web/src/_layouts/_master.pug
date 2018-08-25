@@ -2,11 +2,20 @@ doctype html
 html(lang="en")
     head
         title=title
+
+        //meta
         meta(charset="utf-8")
         meta(name="viewport" content="width=device-width, initial-scale=1")
         meta(name="description" content="Disaster Recovery Dashboard")
-        link(rel="stylesheet" href="https://unpkg.com/leaflet@1.3.4/dist/leaflet.css")
+
+        // scripts
         script(src="https://unpkg.com/leaflet@1.3.4/dist/leaflet.js")
+        script(src="https://cdn.klokantech.com/mapbox-gl-js/v0.43.0/mapbox-gl.js")
+        script(src="https://cdn.klokantech.com/mapbox-gl-leaflet/latest/leaflet-mapbox-gl.js")
+
+        // styles
+        link(rel="stylesheet" href="https://unpkg.com/leaflet@1.3.4/dist/leaflet.css")
+        link(rel="stylesheet" href="https://cdn.klokantech.com/mapbox-gl-js/v0.43.0/mapbox-gl.css")
         block styles
 
     body

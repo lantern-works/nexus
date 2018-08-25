@@ -2,8 +2,8 @@
 @import "bulma/sass/base/_all";
 
 html,body, #map {
-	height: 100%;
-	width: 100%;
+    height: 100%;
+    width: 100%;
 }
 
 // free to remove attribution
