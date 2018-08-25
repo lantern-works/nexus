@@ -15,13 +15,29 @@ function drawMarker(geohash) {
 	var opts = {};
     opts.icon = L.icon.fontAwesome({ 
         markerColor: "#3273dc",
-        markerStroke: "#FFF",
         iconColor: '#FFF'
-    });        
+    });
 	var marker = L.marker(latlon, opts).addTo(map);
 }
 
+function drawRegion(geohash, count) {
+	console.log("Draw region at %s with %s venues", geohash, count);
+	var latlon = Geohash.decode(geohash);
+
+	var opts = {
+		color: "red",
+		radius: 100000
+	}
+
+	var circle = L.circle(latlon, opts).addTo(map);
+
+	circle.bringToBack();
+
+}
+
 // model
+var regions = {};
+var precision = 3;
 var db = new PouchDB("https://lantern.global/db/lnt");
 console.log(db);
 db.find({
@@ -30,10 +46,20 @@ db.find({
 		gp: {$type:"array"}
 	}
 }).then(function(result) {
+
+	// draw markers and define regions for analysis
 	result.docs.forEach(function(venue) {
-		console.log(venue);
+		//console.log(venue);
 		venue.gp.forEach(function(geohash) {
 			drawMarker(geohash);
-		})
-	})
+			var short_geohash = geohash.substr(0,precision);
+			regions[short_geohash] = regions[short_geohash] || 0;
+			regions[short_geohash]++;
+		});
+	});	
+
+	// draw circle around each region
+	for (var idx in regions) {
+		drawRegion(idx, regions[idx]);
+	}
 });
