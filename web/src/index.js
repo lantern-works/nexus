@@ -14,10 +14,15 @@ var db = new PouchDB("https://lantern.global/db/lnt");
 console.log(db);
 db.find({
 	selector: {
-		_id: {$gt: "v:"}
+		_id: {$gt: "v:"},
+		gp: {$type:"array"}
 	}
 }).then(function(result) {
 	result.docs.forEach(function(venue) {
 		console.log(venue);
+		venue.gp.forEach(function(geohash) {
+			var latlon = Geohash.decode(geohash);
+			console.log(latlon);
+		})
 	})
-})
+});
