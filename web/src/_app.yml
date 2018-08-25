@@ -1,0 +1,7 @@
+map:
+    .html: text/pug
+    .css: text/scss
+mock:
+    .html:
+        title: "Lantern Nexus"
+
