@@ -1,0 +1,11 @@
+{
+    "name": "lantern-nexus",
+    "version": "0.0.1",
+    "dependencies": {
+        "express": "*",
+        "simple-node-logger": "*"
+    },
+    "scripts": {
+        "start": "node index.js"
+    }
+}

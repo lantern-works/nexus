@@ -1,0 +1,11 @@
+---
+applications:
+- name: lantern-nexus-web
+  random-route: true
+  health-check-type: process
+  command: npm start
+  path: .
+  memory: 512M
+  instances: 1
+  env:
+    NPM_CONFIG_PRODUCTION: false
