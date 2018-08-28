@@ -4,3 +4,6 @@ node_modules
 # Python cache
 __pycache__
 *.pyc
+
+# CSV Exports
+*.csv
