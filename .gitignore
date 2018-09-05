@@ -7,3 +7,6 @@ __pycache__
 
 # CSV Exports
 *.csv
+
+# Logs
+*.log
