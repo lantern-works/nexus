@@ -5,8 +5,7 @@
         "cfenv": "^1.0.x",
         "dotenv": "^4.0.0",
         "express": "*",
-        "pouchdb": "*",
-        "simple-node-logger": "*"
+        "simple-node-logger": "*",
     },
     "scripts": {
         "start": "node index.js"

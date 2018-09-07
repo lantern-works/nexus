@@ -1,0 +1,14 @@
+---
+applications:
+- name: lantern-nexus-feed
+  no-route: true
+  health-check-type: process
+  command: npm start
+  path: .
+  memory: 512MB
+  instances: 1
+  env:
+    NPM_CONFIG_PRODUCTION: false
+    OPTIMIZE_MEMORY: true
+    CLOUDANT_API_KEY: <CLOUDANT_API_KEY>
+    CLOUDANT_API_PASS: <CLOUDANT_API_PASS>

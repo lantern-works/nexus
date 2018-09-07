@@ -1,0 +1,18 @@
+{
+    "name": "lantern-nexus-data",
+    "version": "0.0.1",
+    "dependencies": {
+        "cfenv": "^1.0.x",
+        "dotenv": "^4.0.0",
+        "pouchdb": "*",
+        "simple-node-logger": "*",
+        "@cloudant/cloudant": "^2.3.0",
+        "csv-parse": "^3.0.0",
+        "request": "2.87.0",
+        "request-promise-native": "^1.0.5",
+        "latlon-geohash": "*"
+    },
+    "scripts": {
+        "start": "node index.js"
+    }
+}
