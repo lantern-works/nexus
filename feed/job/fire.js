@@ -125,11 +125,8 @@ const handleFail = function(err) { // API call failed...
     log.error(err.hasOwnProperty('message') ? err.message : err)
 }
 
-const callActiveFireData = function(done) {
+const callActiveFireData = function(db) {
     
-    // loading this each time takes into account any credential changes since last run
-    db = getDatabase();
-
     return db.info().then(function(response) {
         log.info("[fire] good database access", response);
         var fn = function(item) {
@@ -147,22 +144,74 @@ const callActiveFireData = function(done) {
 }
     
 
+function insertDesignDoc(rev) {
+
+    var design_doc = {
+        _id: "_design/fire",
+        views: {
+            "by_geo": {
+                map: function(doc) {
+                    if (doc._id.substr(0,4) == "w:f:") {
+                        if (doc.hasOwnProperty("gp") && doc.hasOwnProperty("lv")) {
+                            
+                            // only show results a day+ old
+                            var d = new Date();
+                            d.setDate(d.getDate() - 1.5);
+                            var updated_at = new Date(doc.$ca).getTime();
+                            if (updated_at - d.getTime() > 0 ) {
+                                emit(doc.gp[0].substr(0,7), doc.lv);
+                            }  
+                        }
+                    }
+                },
+                reduce: "_sum"
+            }
+        }
+    }
+
+    if (rev) {
+        design_doc._rev = rev;
+    }
+
+    return db.insert(design_doc).then(function(response) {
+        log.debug("[fire] design document updated", response);
+
+    });
+}
+
 
 //--------------------------------------------------------------- Initialization
 if (require.main === module) {
-    callActiveFireData()
+
+    var db = getDatabase();
+
+    // save design document
+    db.get("_design/fire", {rev_info: true}).then(function(response) {
+        insertDesignDoc(response._rev);
+    })
+    .catch(function() {
+        insertDesignDoc();
+    })
+
+
+    callActiveFireData(db)
         .then(function() {
             log.info("[fire] completed stand-alone run");
         })
         .catch(function(err) {
             log.error("[fire] error", err);
         });
+
 } else {
     module.exports = {
       timer: 60 * 60 * 24, // every 24 hours
       start: function(onStart,onComplete) {
+        // loading this each time takes into account any credential changes since last run
+        var db = getDatabase();
         onStart("[fire] begin gathering fire data from NASA");
-        callActiveFireData(onComplete);
+        callActiveFireData(db).then(function(results) {
+            onComplete();
+        });
       }
     }
 }
