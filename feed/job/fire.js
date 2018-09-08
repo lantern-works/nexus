@@ -1,26 +1,27 @@
 // https://firms.modaps.eosdis.nasa.gov/active_fire/
 // https://github.com/Call-for-Code/fires-api-nodejs/blob/master/app.js
 
-const fs = require('fs');
-const request = require('request-promise-native');
-const Cloudant = require('@cloudant/cloudant');
-const parse = require('csv-parse');
+const fs = require("fs");
+const path = require("path");
+const request = require("request-promise-native");
+const Cloudant = require("@cloudant/cloudant");
+const parse = require("csv-parse");
 const Geohash = require("latlon-geohash");
-var log = require("simple-node-logger").createSimpleLogger({
-    logFilePath:'fire.log',
-    dateFormat:'YYYY.MM.DD'
+const log = require("simple-node-logger").createSimpleLogger({
+    logFilePath: path.resolve("..", "fire.log"),
+    dateFormat: "YYYY.MM.DD"
 })
-log.setLevel('debug');
+log.setLevel("debug");
 
 
 
 //--------------------------------------------------------------- Configuration
 // cloudant access uri
 const CLOUDANT_HOST = "37bd9e99-2780-4965-8da8-b6b1ebb682bc-bluemix.cloudant.com"
-const CLOUDANT_DB_NAME = "nexusdb";
+const CLOUDANT_DB_NAME = "lantern-nexus";
 
 // NASA fire data CSV
-const VIIRS_URL = 'https://firms.modaps.eosdis.nasa.gov/data/active_fire/viirs/csv/VNP14IMGTDL_NRT_Global_24h.csv'
+const VIIRS_URL = 'https://firms.modaps.eosdis.nasa.gov/data/active_fire/viirs/csv/VNP14IMGTDL_NRT_Global_24h.csv';
 
 
 
@@ -129,7 +130,7 @@ const callActiveFireData = function(done) {
     // loading this each time takes into account any credential changes since last run
     db = getDatabase();
 
-    db.info().then(function(response) {
+    return db.info().then(function(response) {
         log.info("[fire] good database access", response);
         var fn = function(item) {
             return upsertFireDataRow(db,item)
@@ -149,9 +150,13 @@ const callActiveFireData = function(done) {
 
 //--------------------------------------------------------------- Initialization
 if (require.main === module) {
-    callActiveFireData().then(function() {
-        log.info("[fire] completed stand-alone run");
-    });
+    callActiveFireData()
+        .then(function() {
+            log.info("[fire] completed stand-alone run");
+        })
+        .catch(function(err) {
+            log.error("[fire] error", err);
+        });
 } else {
     module.exports = {
       timer: 60 * 60 * 24, // every 24 hours
