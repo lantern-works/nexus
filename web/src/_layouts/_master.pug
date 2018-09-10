@@ -15,18 +15,17 @@ html(lang="en")
         script(src="//cdn.jsdelivr.net/npm/pouchdb@7.0.0/dist/pouchdb.min.js")
         script(src="//cdn.jsdelivr.net/npm/pouchdb@7.0.0/dist/pouchdb.find.min.js")
         script(src="//cdn.jsdelivr.net/npm/latlon-geohash@1.1.0/latlon-geohash.js")
+        script(src="//cdn.jsdelivr.net/npm/vue@2.5.17/dist/vue.js")
 
         // styles
         link(rel="stylesheet" href="//unpkg.com/leaflet@1.3.4/dist/leaflet.css")
         link(rel="stylesheet" href="//cdn.klokantech.com/mapbox-gl-js/v0.43.0/mapbox-gl.css")
         link(rel="stylesheet" href="/icons/css/all.css")
-        link(rel="stylesheet" href="/global.css")
+        link(rel="stylesheet" href="/style/global.css")
         block styles
 
     body
-
-
-        div(id=id+"-page")
+        div(id="app")
             // main page content
             .page-content
                 block content
@@ -34,8 +33,6 @@ html(lang="en")
 
         #map
 
-
-
-        script(src="/global.js")
+        script(src="/script/global.js")
 
         block scripts

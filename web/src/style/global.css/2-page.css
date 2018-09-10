@@ -1,0 +1,35 @@
+@import "bulma/sass/utilities/_all";
+@import "bulma/sass/base/_all";
+@import "bulma/sass/components/navbar";
+
+$map-background-water-color: #8dcaf9;
+
+html,body,#map {
+    height: 100%;
+    width: 100%;
+}
+
+// free to remove attribution
+// https://groups.google.com/forum/#!msg/leaflet-js/fA6M7fbchOs/JTNVhqdc7JcJ
+.leaflet-control-attribution {display: none;}
+
+#map {
+	background: $map-background-water-color;
+}
+
+.navbar.is-fixed-bottom {
+	z-index: 1000;
+	.navbar-item {
+		text-transform: lowercase;
+		background: #EEE;
+		border-radius: 100px;
+		margin: 0.5em;
+	}
+	.navbar-item:hover {
+		background: #DDD;
+		cursor: pointer;
+	}
+	.navbar-item.active {
+		background: #999;
+	}
+}

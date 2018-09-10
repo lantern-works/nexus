@@ -1,13 +1,11 @@
----
-id: "home"
----
-
 extends _layouts/_master.pug
 
 block content
-        
-block styles
-    link(rel="stylesheet" type="text/css" href="/index.css")
-
-block scripts
-    script(src="/index.js")
+    nav.navbar.is-fixed-bottom(role="navigation" aria-label="main navigation")
+        .navbar-brand
+            .navbar-item(
+            	v-for="filter in filters"
+                :key="filter.id" 
+            	@click="toggleFilter(filter)" 
+            	:class="filter.active === true ? 'active' : 'inactive'"
+            ) {{ filter.name }}

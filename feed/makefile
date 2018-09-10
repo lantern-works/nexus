@@ -15,4 +15,5 @@ env:
 deploy:
 	ibmcloud login
 	ibmcloud target --cf-api https://api.ng.bluemix.net -o west@paperequator.com -s dev
-	ibmcloud cf push
+	ibmcloud cf push --no-start
+	env
