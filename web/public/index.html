@@ -29,6 +29,15 @@
                         <div class="navbar-item" v-for="filter in filters" :key="filter.id" @click="toggleFilter(filter)" :class="filter.active === true ? 'active' : 'inactive'">{{ filter.name }}</div>
                     </div>
                 </nav>
+                <div class="has-shadow" id="chatbox">
+                    <div id="message-container">
+                        <div :class="(message.me ? 'my message' : 'bot message')" v-for="message in messages">
+                             {{ message.text }}</div>
+                    </div>
+                    <form class="prompt" @submit.prevent="chatMessageSubmit">
+                        <input class="input is-rounded" type="text" placeholder="Enter message here" v-model="message" autofocus="autofocus">
+                    </form>
+                </div>
             </div>
         </div>
         <div id="map"></div>

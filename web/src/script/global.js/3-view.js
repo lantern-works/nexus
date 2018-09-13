@@ -94,6 +94,12 @@ LX.View = (function() {
         }
 	}
 
+    //----------------------------------------------------------------- Chat Interface
+    function scrollChat() {
+        var chat = document.getElementById('message-container'); 
+        chat.scrollTop = chat.scrollHeight;
+    }
+
     //----------------------------------------------------------------- Place Layers
 
     function showPlace(row, layer_group) {
@@ -184,7 +190,9 @@ LX.View = (function() {
 
 	self.Vue = new Vue({
         data: {
-        	filters: LX.Model.getWeatherTypes()
+            filters: LX.Model.getWeatherTypes(),
+            message: "",
+            messages: LX.Model.getFakeMessages()
         },
         methods: {
         	toggleFilter: function(filter) {
@@ -196,10 +204,22 @@ LX.View = (function() {
                 else {
                     self.hide[filter.id]();
                 }  
-        	}
+        	},
+            chatMessageSubmit: function() {
+                console.log($data.message);
+                $data.messages.push({
+                    "me": true,
+                    "text": $data.message
+                });
+
+                // always scroll to bottom after sending message
+                setTimeout(scrollChat, 10);
+                $data.message = "";
+            }
         },
         mounted: function() {
         	self.showMap();
+            scrollChat();
         }
     });
 

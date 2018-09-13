@@ -1,7 +1,7 @@
 @import "bulma/sass/utilities/_all";
 @import "bulma/sass/base/_all";
 @import "bulma/sass/components/navbar";
-
+@import "bulma/sass/elements/form";
 $map-background-water-color: #8dcaf9;
 
 html,body,#map {
@@ -18,12 +18,16 @@ html,body,#map {
 }
 
 .navbar.is-fixed-bottom {
+
+	padding-left: 30%;
+
 	z-index: 1000;
 	.navbar-item {
 		text-transform: lowercase;
 		background: #EEE;
 		border-radius: 100px;
 		margin: 0.5em;
+		margin-left: 2em;
 	}
 	.navbar-item:hover {
 		background: #DDD;
@@ -31,5 +35,46 @@ html,body,#map {
 	}
 	.navbar-item.active {
 		background: #999;
+	}
+}
+
+#chatbox {
+	width: 30%;
+	height: 100%;
+	background: #FFF;
+	z-index: 1001;
+	box-shadow: 0 0 0 0.5em rgba(0, 0, 0, 0.25);
+	border-right: 1px solid #CCC;
+	position: fixed;
+	top: 0;
+	left: 0;
+
+
+
+	.message {
+		margin: 2em;
+		background: #EEE;
+		margin-bottom: 1em;
+		border-radius: 1em;
+		padding: 1em;
+	}
+
+	.my.message {
+		background: #DDD;
+	}
+
+	#message-container {
+	  overflow-y: scroll;
+	  height: 90%;
+	}
+
+	.prompt {
+		height: 10%;
+		width: 30%;
+		border-top: 1px solid #DDD;
+		position: fixed;
+		bottom: 0;
+		padding: 1em;
+		background: #EEE;
 	}
 }

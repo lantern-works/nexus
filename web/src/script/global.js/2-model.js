@@ -21,6 +21,36 @@ LX.Model = (function() {
 		return ["9z", "dn", "c8", "fo"];
 	}
 
+	self.getFakeMessages = function() {
+		return [
+			{
+				"me": false,
+				"text": "Good morning! We have 49 unattended requests for supplies in the Greater Boston Area."
+			},
+			{
+				"me": true,
+				"text": "categorize please"
+			},
+			{
+				"me": false,
+				"text": "Sure. At this moment, the most needed supply is Water and fastest growing need is Clothing."
+			},
+			{
+				"me": true,
+				"text": "ok, fresh drinking water just arrived at Fenway"
+			},
+			{
+				"me": false,
+				"text": "I recommend dispatch to Roxbury. This area is at highest risk and there is a volunteer driver near you."
+			},
+			{
+				"me": true,
+				"text": "show suggested route avoiding flood risk"
+			}
+		];
+	}
+
+
 	//----------------------------------------------------------------- Database Interactions
 	self.getDatabase = function(name, username, password) {
 		var db_uri = "https://"+db_host+"/"+name;

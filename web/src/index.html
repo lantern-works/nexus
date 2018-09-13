@@ -1,6 +1,7 @@
 extends _layouts/_master.pug
 
 block content
+
     nav.navbar.is-fixed-bottom(role="navigation" aria-label="main navigation")
         .navbar-brand
             .navbar-item(
@@ -9,3 +10,11 @@ block content
             	@click="toggleFilter(filter)" 
             	:class="filter.active === true ? 'active' : 'inactive'"
             ) {{ filter.name }}
+
+    #chatbox.has-shadow
+        #message-container
+            div(:class="(message.me ? 'my message' : 'bot message')" v-for="message in messages") 
+                | {{ message.text }}
+
+        form.prompt(@submit.prevent="chatMessageSubmit")
+            input.input.is-rounded(type="text" placeholder="Enter message here" v-model="message" autofocus="autofocus")
