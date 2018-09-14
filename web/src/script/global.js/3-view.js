@@ -212,6 +212,18 @@ LX.View = (function() {
                     "text": $data.message
                 });
 
+
+                LX.Model.sendMessage($data.message).then(function(reply_data) {
+                    console.log(reply_data);
+                    var reply_text = reply_data.output.text.join(" ");
+                    $data.messages.push({
+                        "me": false,
+                        "text": reply_text
+                    });
+                    setTimeout(scrollChat, 10);
+                });
+
+
                 // always scroll to bottom after sending message
                 setTimeout(scrollChat, 10);
                 $data.message = "";

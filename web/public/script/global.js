@@ -73,7 +73,8 @@ window.LX = LX;
 
 LX.Model = (function() {
 
-	var db_host = "37bd9e99-2780-4965-8da8-b6b1ebb682bc-bluemix.cloudant.com"
+	var db_host = "37bd9e99-2780-4965-8da8-b6b1ebb682bc-bluemix.cloudant.com";
+	var web_host = window.location.host.replace(":3000", ":8080")
 	var self = {};
 
 
@@ -118,6 +119,22 @@ LX.Model = (function() {
 				"text": "show suggested route avoiding flood risk"
 			}
 		];
+	}
+	//----------------------------------------------------------------- Conversational
+
+	self.sendMessage = function(text) {
+		return fetch("http://"+web_host+"/api/message", {
+        		method: "POST",
+        		cors: true, 
+        		headers: {
+      				"Accept": "application/json",
+      				"Content-Type": "application/json"
+    			},
+        		body: JSON.stringify({"text": text})
+			})
+			.then(function(response) {
+			  	return response.json();
+			})
 	}
 
 
@@ -378,6 +395,18 @@ LX.View = (function() {
                     "me": true,
                     "text": $data.message
                 });
+
+
+                LX.Model.sendMessage($data.message).then(function(reply_data) {
+                    console.log(reply_data);
+                    var reply_text = reply_data.output.text.join(" ");
+                    $data.messages.push({
+                        "me": false,
+                        "text": reply_text
+                    });
+                    setTimeout(scrollChat, 10);
+                });
+
 
                 // always scroll to bottom after sending message
                 setTimeout(scrollChat, 10);
