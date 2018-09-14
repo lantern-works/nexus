@@ -1,4 +1,4 @@
 pycouchdb
 requests
-geohash2
+pygeohash
 moment

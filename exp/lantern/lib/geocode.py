@@ -1,4 +1,4 @@
-import os,requests
+import os,requests,pygeohash
 
 HOST = 'https://geocoder.tilehosting.com'
 REVERSE_GEOCODE_API = '/r/' 
@@ -26,6 +26,23 @@ def reverseGeocode(lat, lon):
       return r.json()
     else:
       handleFail(r)
+
+
+def getNameFromGeohash(geo_area):
+    [lat,lon] = pygeohash.decode(geo_area)
+    lat = float(lat)
+    lon = float(lon)
+    name_results = reverseGeocode(lat, lon)
+    if (name_results['count'] > 0):
+
+      first_result = name_results['results'][0]
+
+      place_name = first_result['city']
+      if not place_name:
+        place_name = first_result['name']
+      country = first_result['country']
+
+    return [place_name, country]
 
 
 def handleFail(err):
