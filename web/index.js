@@ -1,6 +1,7 @@
 const http = require("http");
 const fs = require("fs");
 const path = require("path");
+const fetch = require("node-fetch");
 const bodyParser = require("body-parser");
 const express = require("express");
 const AssistantV1 = require('watson-developer-cloud/assistant/v1');
@@ -40,11 +41,9 @@ serv.post("/api/message", bodyParser.json(), function(req,res) {
         	input: {'text': req.body.text}
         },  function(err, response) {
         	if (err) {
-                console.error(err);
         	   return res.status(500).json({"ok": false, "message": err});
         	}
         	else {
-                console.log(response);
         	   res.status(201).json(response);
         	}
         });
@@ -53,6 +52,30 @@ serv.post("/api/message", bodyParser.json(), function(req,res) {
         return res.status(403).json({"ok": false, "message": "Required parameter not found: text"});
     }
 });
+
+serv.post("/api/geocode", bodyParser.json(), function(req, res) {
+    if (req.body.text) {
+        var uri = "https://geocoder.tilehosting.com/q/"+req.body.text+".js?key=" + process.env.GEOCODE_API_KEY;
+        return fetch(uri, {
+                method: "GET",
+                cors: true, 
+                headers: {
+                    "Accept": "application/json",
+                    "Content-Type": "application/json"
+                }
+            })
+            .then(function(response) {
+                return response.json();
+            })
+            .then(function(response) {
+                res.status(201).json(response);
+            })
+    }
+    else {
+        return res.status(403).json({"ok": false, "message": "Required parameter not found: text"});
+    }
+
+})
 
 
 

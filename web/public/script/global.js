@@ -123,7 +123,7 @@ LX.Model = (function() {
 	//----------------------------------------------------------------- Conversational
 
 	self.sendMessage = function(text) {
-		return fetch("http://"+web_host+"/api/message", {
+		return fetch(window.location.protocol + "//" + web_host+"/api/message", {
         		method: "POST",
         		cors: true, 
         		headers: {
@@ -140,7 +140,7 @@ LX.Model = (function() {
 
 	//----------------------------------------------------------------- Database Interactions
 	self.getDatabase = function(name, username, password) {
-		var db_uri = "https://"+db_host+"/"+name;
+		var db_uri = window.location.protocol + "//" +db_host+"/"+name;
 		if (username && password) {
 			db_uri = db_uri.replace("://", "://"+username+":"+password+"@");
 		}

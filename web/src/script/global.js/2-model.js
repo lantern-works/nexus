@@ -50,27 +50,38 @@ LX.Model = (function() {
 			}
 		];
 	}
-	//----------------------------------------------------------------- Conversational
 
-	self.sendMessage = function(text) {
-		return fetch("http://"+web_host+"/api/message", {
+
+
+	//----------------------------------------------------------------- Conversational
+	function postToAPI(route, data) {
+		return fetch(window.location.protocol + "//" + web_host + "/api/" + route, {
         		method: "POST",
         		cors: true, 
         		headers: {
       				"Accept": "application/json",
       				"Content-Type": "application/json"
     			},
-        		body: JSON.stringify({"text": text})
+        		body: JSON.stringify(data)
 			})
 			.then(function(response) {
 			  	return response.json();
 			})
 	}
 
+	self.sendMessage = function(text) {
+		return postToAPI("message", {"text": text});
+	}
+
+	self.getLocationsFromName = function(text) {
+		return postToAPI("geocode", {"text": text});
+	}
+
+
 
 	//----------------------------------------------------------------- Database Interactions
 	self.getDatabase = function(name, username, password) {
-		var db_uri = "https://"+db_host+"/"+name;
+		var db_uri = "https://" +db_host+"/"+name;
 		if (username && password) {
 			db_uri = db_uri.replace("://", "://"+username+":"+password+"@");
 		}

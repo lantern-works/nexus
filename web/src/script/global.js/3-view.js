@@ -183,7 +183,66 @@ LX.View = (function() {
         self.Map.removeLayer(self.Layers.vehicle.all);
     }
 
+    //----------------------------------------------------------------- Conversation
 
+    function actOnReply(reply) {
+        
+
+        console.log(reply);
+
+        var location = "";
+        reply.entities.forEach(function(entity) {
+            if (entity.location) {
+                console.log("appending location", entity.value);
+                location += " "  + entity.value;
+            }
+        });
+
+        setTimeout(function() {
+            if (location) {
+                actOnLocation(location);
+            }
+            else {
+
+                $data.messages.push({
+                    "me": false,
+                    "text": reply.output.text.join(" ")
+                });
+                setTimeout(scrollChat, 10);
+            }
+        }, 500);
+    }
+
+
+    function actOnLocation(name) {
+        console.log("[view] find on map: " + name);
+        LX.Model.getLocationsFromName(name).then(function(data) {
+            console.log(data);
+
+            var pick = data.results[0];
+
+           $data.messages.push({
+                "me": false,
+                "text": "I am now showing " + pick.display_name + " on the map."
+            });
+
+            setTimeout(scrollChat, 10);
+
+            console.log(pick);            
+            var bounds = pick.boundingbox.reduce(function(result, value, index, array) {
+                if (index % 2 === 0) {
+                    result.push(array.slice(index, index + 2).reverse());
+                }
+                return result;
+            }, []);
+            var zoom_level = 2 + (pick.place_rank)/2;
+            var coords = [pick.lat, pick.lon];
+            L.circle(coords).addTo(self.Map);
+            self.Map.setView(coords, zoom_level);
+
+            
+        });
+    }
 
 
 	//----------------------------------------------------------------- Vue Interface
@@ -213,15 +272,7 @@ LX.View = (function() {
                 });
 
 
-                LX.Model.sendMessage($data.message).then(function(reply_data) {
-                    console.log(reply_data);
-                    var reply_text = reply_data.output.text.join(" ");
-                    $data.messages.push({
-                        "me": false,
-                        "text": reply_text
-                    });
-                    setTimeout(scrollChat, 10);
-                });
+                LX.Model.sendMessage($data.message).then(actOnReply);
 
 
                 // always scroll to bottom after sending message
