@@ -231,14 +231,32 @@ LX.View = (function() {
                     location += " "  + entity.value;
                 }
             });
-            actOnLocation(location);
+            if (location.length) {
+                actOnLocation(location);
+            }
         }
         else if (main_intent == "map-display-near-me") {
             getMyLocation()
                 .then(actOnMyLocation);
         }
+        else if (main_intent == "map-zoom-in") {
+            actOnZoomIn();
+        }
+        else if (main_intent == "map-zoom-out") {
+            actOnZoomOut();
+        }
             
 
+    }
+
+    function actOnZoomIn() {
+
+        self.Map.setZoom(self.Map.getZoom()+1); 
+    }
+
+    function actOnZoomOut() {
+
+        self.Map.setZoom(self.Map.getZoom()-1); 
     }
 
     function actOnMyLocation(pos) {
@@ -279,7 +297,7 @@ LX.View = (function() {
 
             self.Map.setView(coords, zoom_level);
 
-            addBotMessage( "I am now showing " + pick.display_name + " on the map.", 2);
+            addBotMessage( "Now showing " + pick.display_name + " on the map.", 2);
 
         });
     }
