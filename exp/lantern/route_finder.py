@@ -13,6 +13,7 @@ scenario_supply_type = "wtr" # can be determined by quantity and rate of request
 scenario_emergency_level = 3 # simulated level
 scenario_type = 1 # flood scenario
 scenario_ideal_distribution = 10 # water in liters per truck route @todo calculate this intelligently
+scenario_optimal_number_of_trucks = 1
 scenario_start = moment.utc(2018, 9, 6) # date of disaster start
 
 
@@ -67,9 +68,10 @@ def writeHeaderRow(writer):
         "Emergency_level",
         "Hours_since_last_supply",
         "Quality_score",
-        "Ideal_distribution",
         "Number_of_available_trucks",
-        "Hours_since_disaster"
+        "Hours_since_disaster",
+        "Optimal_number_of_trucks",
+        "Ideal_distribution"
     ])
 
 def writeTrainingRow(route, writer):
@@ -80,9 +82,10 @@ def writeTrainingRow(route, writer):
         scenario_emergency_level,
         calculateHoursSinceSupply(moment.utcnow(), getSupplyDates()),
         int(route['rt']*100),
-        scenario_ideal_distribution,
         len(zone_data['vehicles']),
         calculateHoursSinceDisaster(route),
+        scenario_optimal_number_of_trucks,
+        scenario_ideal_distribution
     ])
 
 
