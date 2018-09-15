@@ -55,6 +55,9 @@ LX.Model = (function() {
 
 	//----------------------------------------------------------------- Conversational
 	function postToAPI(route, data) {
+		var json_data = JSON.stringify(data);
+
+		console.log(json_data);
 		return fetch(window.location.protocol + "//" + web_host + "/api/" + route, {
         		method: "POST",
         		cors: true, 
@@ -62,7 +65,7 @@ LX.Model = (function() {
       				"Accept": "application/json",
       				"Content-Type": "application/json"
     			},
-        		body: JSON.stringify(data)
+        		body: json_data
 			})
 			.then(function(response) {
 			  	return response.json();
@@ -77,6 +80,12 @@ LX.Model = (function() {
 		return postToAPI("geocode", {"text": text});
 	}
 
+	self.getNamesFromLocation = function(pos) {
+		return postToAPI("reverse_geocode", {
+			"latitude": pos.coords.latitude,
+			"longitude": pos.coords.longitude 
+		});
+	}
 
 
 	//----------------------------------------------------------------- Database Interactions

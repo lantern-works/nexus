@@ -120,27 +120,47 @@ LX.Model = (function() {
 			}
 		];
 	}
-	//----------------------------------------------------------------- Conversational
 
-	self.sendMessage = function(text) {
-		return fetch(window.location.protocol + "//" + web_host+"/api/message", {
+
+
+	//----------------------------------------------------------------- Conversational
+	function postToAPI(route, data) {
+		var json_data = JSON.stringify(data);
+
+		console.log(json_data);
+		return fetch(window.location.protocol + "//" + web_host + "/api/" + route, {
         		method: "POST",
         		cors: true, 
         		headers: {
       				"Accept": "application/json",
       				"Content-Type": "application/json"
     			},
-        		body: JSON.stringify({"text": text})
+        		body: json_data
 			})
 			.then(function(response) {
 			  	return response.json();
 			})
 	}
 
+	self.sendMessage = function(text) {
+		return postToAPI("message", {"text": text});
+	}
+
+	self.getLocationsFromName = function(text) {
+		return postToAPI("geocode", {"text": text});
+	}
+
+	self.getNamesFromLocation = function(pos) {
+		return postToAPI("reverse_geocode", {
+			"latitude": pos.coords.latitude,
+			"longitude": pos.coords.longitude 
+		});
+	}
+
 
 	//----------------------------------------------------------------- Database Interactions
 	self.getDatabase = function(name, username, password) {
-		var db_uri = window.location.protocol + "//" +db_host+"/"+name;
+		var db_uri = "https://" +db_host+"/"+name;
 		if (username && password) {
 			db_uri = db_uri.replace("://", "://"+username+":"+password+"@");
 		}
@@ -202,6 +222,22 @@ LX.View = (function() {
 
 
 	//----------------------------------------------------------------- Map Interface
+
+
+    function getMyLocation() {
+        return new Promise(function(resolve, reject) {
+            navigator.geolocation.getCurrentPosition(function(position) {
+                resolve(position);
+            }, function(err) {
+                reject(err);
+            }, {
+                enableHighAccuracy: false, 
+                maximumAge        : 30000, 
+                timeout           : 27000
+            });
+        });
+    }
+
 	self.Map = L.map('map').setView([38.42,-102.79], 4);
 
 
@@ -367,7 +403,90 @@ LX.View = (function() {
         self.Map.removeLayer(self.Layers.vehicle.all);
     }
 
+    //----------------------------------------------------------------- Conversation
 
+    function addBotMessage(text, second_delay) {
+        setTimeout(function() {      
+            $data.messages.push({
+                "me": false,
+                "text": text
+            });
+            setTimeout(scrollChat, 10);
+        }, second_delay*1000);
+    }
+
+    function actOnReply(reply) {
+        
+
+        if (reply.intents.length) {
+            var main_intent = reply.intents[0].intent;
+            console.log(main_intent);
+            console.log(reply);
+        }
+
+        
+        addBotMessage(reply.output.text.join(" "));
+        
+        if (main_intent == "map-display") {
+            var location = "";
+            reply.entities.forEach(function(entity) {
+                if (entity.location) {
+                    console.log("appending location", entity.value);
+                    location += " "  + entity.value;
+                }
+            });
+            actOnLocation(location);
+        }
+        else if (main_intent == "map-display-near-me") {
+            getMyLocation()
+                .then(actOnMyLocation);
+        }
+            
+
+    }
+
+    function actOnMyLocation(pos) {
+        
+        self.Map.setView([pos.coords.latitude, pos.coords.longitude], 13);
+
+        LX.Model.getNamesFromLocation(pos)
+            .then(function(data) {
+                console.log("found name", pos, data);
+
+                if (data.results.length) {
+                    var name = data.results[0].display_name;
+                    addBotMessage("Now showing " + name + " on the map.");
+                }
+                else {
+                    addBotMessage("Now showing a location near you on the map.");
+                }
+                
+            });
+    }
+
+    function actOnLocation(name) {
+        console.log("[view] find on map: " + name);
+        LX.Model.getLocationsFromName(name).then(function(data) {
+            console.log(data);
+
+            var pick = data.results[0];
+            
+            console.log(pick);            
+            var bounds = pick.boundingbox.reduce(function(result, value, index, array) {
+                if (index % 2 === 0) {
+                    result.push(array.slice(index, index + 2).reverse());
+                }
+                return result;
+            }, []);
+            var zoom_level = 2 + (pick.place_rank)/2;
+            var coords = [pick.lat, pick.lon];
+
+            self.Map.setView(coords, zoom_level);
+
+            addBotMessage( "I am now showing " + pick.display_name + " on the map.", 2);
+
+        });
+    }
 
 
 	//----------------------------------------------------------------- Vue Interface
@@ -397,16 +516,7 @@ LX.View = (function() {
                 });
 
 
-                LX.Model.sendMessage($data.message).then(function(reply_data) {
-                    console.log(reply_data);
-                    var reply_text = reply_data.output.text.join(" ");
-                    $data.messages.push({
-                        "me": false,
-                        "text": reply_text
-                    });
-                    setTimeout(scrollChat, 10);
-                });
-
+                LX.Model.sendMessage($data.message).then(actOnReply);
 
                 // always scroll to bottom after sending message
                 setTimeout(scrollChat, 10);

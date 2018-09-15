@@ -18,6 +18,22 @@ LX.View = (function() {
 
 
 	//----------------------------------------------------------------- Map Interface
+
+
+    function getMyLocation() {
+        return new Promise(function(resolve, reject) {
+            navigator.geolocation.getCurrentPosition(function(position) {
+                resolve(position);
+            }, function(err) {
+                reject(err);
+            }, {
+                enableHighAccuracy: false, 
+                maximumAge        : 30000, 
+                timeout           : 27000
+            });
+        });
+    }
+
 	self.Map = L.map('map').setView([38.42,-102.79], 4);
 
 
@@ -185,34 +201,64 @@ LX.View = (function() {
 
     //----------------------------------------------------------------- Conversation
 
+    function addBotMessage(text, second_delay) {
+        setTimeout(function() {      
+            $data.messages.push({
+                "me": false,
+                "text": text
+            });
+            setTimeout(scrollChat, 10);
+        }, second_delay*1000);
+    }
+
     function actOnReply(reply) {
         
 
-        console.log(reply);
+        if (reply.intents.length) {
+            var main_intent = reply.intents[0].intent;
+            console.log(main_intent);
+            console.log(reply);
+        }
 
-        var location = "";
-        reply.entities.forEach(function(entity) {
-            if (entity.location) {
-                console.log("appending location", entity.value);
-                location += " "  + entity.value;
-            }
-        });
+        
+        addBotMessage(reply.output.text.join(" "));
+        
+        if (main_intent == "map-display") {
+            var location = "";
+            reply.entities.forEach(function(entity) {
+                if (entity.location) {
+                    console.log("appending location", entity.value);
+                    location += " "  + entity.value;
+                }
+            });
+            actOnLocation(location);
+        }
+        else if (main_intent == "map-display-near-me") {
+            getMyLocation()
+                .then(actOnMyLocation);
+        }
+            
 
-        setTimeout(function() {
-            if (location) {
-                actOnLocation(location);
-            }
-            else {
-
-                $data.messages.push({
-                    "me": false,
-                    "text": reply.output.text.join(" ")
-                });
-                setTimeout(scrollChat, 10);
-            }
-        }, 500);
     }
 
+    function actOnMyLocation(pos) {
+        
+        self.Map.setView([pos.coords.latitude, pos.coords.longitude], 13);
+
+        LX.Model.getNamesFromLocation(pos)
+            .then(function(data) {
+                console.log("found name", pos, data);
+
+                if (data.results.length) {
+                    var name = data.results[0].display_name;
+                    addBotMessage("Now showing " + name + " on the map.");
+                }
+                else {
+                    addBotMessage("Now showing a location near you on the map.");
+                }
+                
+            });
+    }
 
     function actOnLocation(name) {
         console.log("[view] find on map: " + name);
@@ -220,14 +266,7 @@ LX.View = (function() {
             console.log(data);
 
             var pick = data.results[0];
-
-           $data.messages.push({
-                "me": false,
-                "text": "I am now showing " + pick.display_name + " on the map."
-            });
-
-            setTimeout(scrollChat, 10);
-
+            
             console.log(pick);            
             var bounds = pick.boundingbox.reduce(function(result, value, index, array) {
                 if (index % 2 === 0) {
@@ -237,10 +276,11 @@ LX.View = (function() {
             }, []);
             var zoom_level = 2 + (pick.place_rank)/2;
             var coords = [pick.lat, pick.lon];
-            L.circle(coords).addTo(self.Map);
+
             self.Map.setView(coords, zoom_level);
 
-            
+            addBotMessage( "I am now showing " + pick.display_name + " on the map.", 2);
+
         });
     }
 
@@ -273,7 +313,6 @@ LX.View = (function() {
 
 
                 LX.Model.sendMessage($data.message).then(actOnReply);
-
 
                 // always scroll to bottom after sending message
                 setTimeout(scrollChat, 10);

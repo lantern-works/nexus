@@ -33,9 +33,7 @@ var assistant = new AssistantV1({
 
 
 serv.post("/api/message", bodyParser.json(), function(req,res) {
-    console.log(req.body)
     if (req.body.text) {
-        console.log("sending message: " + req.body.text);
         assistant.message({
         	workspace_id: assistant_workspace,
         	input: {'text': req.body.text}
@@ -52,6 +50,31 @@ serv.post("/api/message", bodyParser.json(), function(req,res) {
         return res.status(403).json({"ok": false, "message": "Required parameter not found: text"});
     }
 });
+
+serv.post("/api/reverse_geocode", bodyParser.json(), function(req,res) {
+    if (req.body.latitude && req.body.longitude) {
+        var uri = "https://geocoder.tilehosting.com/r/"+req.body.longitude+ "/"+ req.body.latitude + ".js?key=" + process.env.GEOCODE_API_KEY;
+        return fetch(uri, {
+                method: "GET",
+                cors: true, 
+                headers: {
+                    "Accept": "application/json",
+                    "Content-Type": "application/json"
+                }
+            })
+            .then(function(response) {
+                return response.json();
+            })
+            .then(function(response) {
+                res.status(201).json(response);
+            })
+    }
+    else {
+        return res.status(403).json({"ok": false, "message": "Required parameters not found: latitude / longitude"});
+    }
+
+});
+
 
 serv.post("/api/geocode", bodyParser.json(), function(req, res) {
     if (req.body.text) {
