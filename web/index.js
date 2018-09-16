@@ -66,14 +66,22 @@ serv.post("/api/reverse_geocode", bodyParser.json(), function(req,res) {
             })
             .then(function(response) {
                 console.log("reverse geocode complete");
-                return response.json();
+                try {
+                    return response.json();         
+                }
+                catch(e) {
+                    console.error(e);
+                    console.log(response);
+                }
             })
-            .then(function(response) {
-                res.status(201).json(response);
-            })
-            .catch((function(err) {
-                res.status(500).json({"ok": false, "message": JSON.stringify(err)});
-            }));
+            .then(function(json) {
+               if (json) {
+                    res.status(201).json(json);                 
+                }
+                else {
+                    res.status(500).json({"ok": false, "message": "Could not find JSON data"});
+                }      
+            });
     }
     else {
         return res.status(403).json({"ok": false, "message": "Required parameters not found: latitude / longitude"});
@@ -96,14 +104,22 @@ serv.post("/api/geocode", bodyParser.json(), function(req, res) {
             })
             .then(function(response) {
                 console.log("geocode complete");
-                return response.json();
+                try {
+                    return response.json();
+                }
+                catch(e) {
+                    console.error(e);
+                    console.log(response);
+                }
             })
-            .then(function(response) {
-                res.status(201).json(response);
-            })
-            .catch((function(err) {
-                res.status(500).json({"ok": false, "message": JSON.stringify(err)});
-            }));
+            .then(function(json) {
+                if (json) {
+                    res.status(201).json(json);                 
+                }
+                else {
+                    res.status(500).json({"ok": false, "message": "Could not find JSON data"});
+                }
+            });
     }
     else {
         return res.status(403).json({"ok": false, "message": "Required parameter not found: text"});

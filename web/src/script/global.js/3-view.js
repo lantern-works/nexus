@@ -228,7 +228,10 @@ LX.View = (function() {
             reply.entities.forEach(function(entity) {
                 if (entity.location) {
                     console.log("appending location", entity.value);
-                    location += " "  + entity.value;
+                    if (location) {
+                        location += " ";
+                    }
+                    location += entity.value;
                 }
             });
             if (location.length) {

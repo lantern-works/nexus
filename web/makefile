@@ -10,7 +10,7 @@ run:
 env: 
 	ibmcloud cf set-env ${APP_ID} WATSON_USERNAME ${WATSON_USERNAME}
 	ibmcloud cf set-env ${APP_ID} WATSON_PASSWORD ${WATSON_PASSWORD}
-	ibmcloud cf set-env ${APP_ID} GEOCODE_API_KEY ${WATSON_PASSWORD}
+	ibmcloud cf set-env ${APP_ID} GEOCODE_API_KEY ${GEOCODE_API_KEY}
 	ibmcloud cf restage ${APP_ID}
 
 
