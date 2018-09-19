@@ -1,0 +1,11 @@
+{
+    "name": "lantern-nexus-query",
+    "version": "0.0.1",
+    "dependencies": {
+        "pouchdb": "*",
+        "simple-node-logger": "*"
+    },
+    "scripts": {
+        "start": "node publish_views.js"
+    }
+}
