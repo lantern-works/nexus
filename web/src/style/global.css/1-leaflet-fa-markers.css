@@ -15,9 +15,23 @@
 }
 .leaflet-fa-markers .feature-icon {
     position: absolute;
-    font-size: 16px;
-    line-height: 0px;
-    left: 15%;
-    top: 18px;
+    font-size: 14px;
+    background: blue;
+    width: 25px;
+    height: 25px;
+    left: 3px;
+    top: 4px;
+    border-radius: 10em;
+    border-width: 10px;
+    padding: 3px;
+    padding-top: 5px;
     display: inline-block;
+}
+
+
+.leaflet-fa-markers-circle {
+    .feature-icon {
+        top: 25px;
+
+    }
 }

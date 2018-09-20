@@ -36,6 +36,8 @@ L.Icon.FontAwesome = L.Icon.extend({
         var iconSpan = L.DomUtil.create('span', options.iconClasses + ' feature-icon');
         iconSpan.style.color = options.iconColor;
         iconSpan.style.textAlign = 'center';
+        iconSpan.style.backgroundColor = options.markerColor;
+        iconSpan.style.borderColor = options.markerStroke;
 
         // XY position adjustments
         if(options.iconYOffset && options.iconYOffset != 0) iconSpan.style.marginTop = options.iconYOffset + 'px';
@@ -51,8 +53,7 @@ L.Icon.FontAwesome = L.Icon.extend({
             'version="1.1" ' +
             'xmlns="http://www.w3.org/2000/svg" ' +
             'xmlns:xlink="http://www.w3.org/1999/xlink">' +
-            '<path d="'+options.markerPath+'" ' +
-            'fill="'+ options.markerColor + '" stroke="' + options.markerStroke + '"></path>' +
+            '<path fill="' + options.markerColor + '" d="'+options.markerPath+'" "></path>' +
             '</svg>';
 
 
@@ -67,6 +68,76 @@ L.icon.fontAwesome = function (options) {
 };
 
 L.Icon.FontAwesome.prototype.options.markerPath = 'M16,1 C7.7146,1 1,7.65636364 1,15.8648485 C1,24.0760606 16,51 16,51 C16,51 31,24.0760606 31,15.8648485 C31,7.65636364 24.2815,1 16,1 L16,1 Z';
+
+
+
+
+L.Icon.FontAwesomeCircle = L.Icon.extend({
+
+    options: {
+        popupAnchor: [0, -50]
+    },
+
+    createIcon: function () {
+
+        var div = document.createElement('div');
+        var options = this.options;
+
+        if(options.iconClasses) {
+            div.appendChild(this._createIcon());
+        }
+
+        return div;
+    },
+
+    _createIcon: function () {
+
+        var options = this.options;
+
+        // container div
+        var iconDiv = L.DomUtil.create('div', 'leaflet-fa-markers leaflet-fa-markers-circle');
+
+        // feature icon
+        var iconSpan = L.DomUtil.create('span', options.iconClasses + ' feature-icon');
+        iconSpan.style.color = options.iconColor;
+        iconSpan.style.textAlign = 'center';
+        iconSpan.style.backgroundColor = options.markerColor;
+        iconSpan.style.borderColor = options.markerStroke;
+
+        // XY position adjustments
+        if(options.iconYOffset && options.iconYOffset != 0) iconSpan.style.marginTop = options.iconYOffset + 'px';
+        if(options.iconXOffset && options.iconXOffset != 0) iconSpan.style.marginLeft = options.iconXOffset + 'px';
+
+        // marker icon L.DomUtil doesn't seem to like svg, just append out html directly
+        var markerSvg = document.createElement('div');
+        markerSvg.className = "marker-icon-svg";
+        markerSvg.innerHTML = '<svg ' +
+            'width="32px" ' +
+            'height="52px" ' +
+            'viewBox="0 0 32 52" ' +
+            'version="1.1" ' +
+            'xmlns="http://www.w3.org/2000/svg" ' +
+            'xmlns:xlink="http://www.w3.org/1999/xlink">' +
+            '<path fill="' + options.markerColor + '" fill-opacity="0.0" d="'+options.markerPath+'" "></path>' +
+            '</svg>';
+
+
+        iconDiv.appendChild(markerSvg);
+        iconDiv.appendChild(iconSpan);
+        return iconDiv;
+    }
+});
+
+L.icon.fontAwesomeCircle = function (options) {
+    return new L.Icon.FontAwesomeCircle(options);
+};
+
+function getPath(cx,cy,r){
+  return "M" + cx + "," + cy + "m" + (-r) + ",0a" + r + "," + r + " 0 1,0 " + (r * 2) + ",0a" + r + "," + r + " 0 1,0 " + (-r * 2) + ",0";
+}
+
+L.Icon.FontAwesomeCircle.prototype.options.markerPath =  'M16,1 C7.7146,1 1,7.65636364 1,15.8648485 C1,24.0760606 16,51 16,51 C16,51 31,24.0760606 31,15.8648485 C31,7.65636364 24.2815,1 16,1 L16,1 Z';
+
 
 var LX = window.LX || {};
 window.LX = LX;
@@ -98,8 +169,6 @@ LX.Model = (function() {
 	//----------------------------------------------------------------- Conversational
 	function postToAPI(route, data) {
 		var json_data = JSON.stringify(data);
-
-		console.log(json_data);
 		return fetch(window.location.protocol + "//" + web_host + "/api/" + route, {
         		method: "POST",
         		cors: true, 
@@ -146,7 +215,6 @@ LX.Model = (function() {
 		if (username && password) {
 			db_uri = db_uri.replace("://", "://"+username+":"+password+"@");
 		}
-		console.log(db_uri);
 		return new PouchDB(db_uri);
 	}
 
@@ -165,7 +233,6 @@ LX.Model = (function() {
 	}
 
 	self.findPendingRequests = function(geohash) {
-		console.log(geohash);
 		return self.db.network.query("request/by_geo", {
 
 		});
@@ -216,6 +283,27 @@ LX.Map = (function() {
     });
 
 
+    //----------------------------------------------------------------- Helpers
+    function initLayerGroup(key, subkey) {
+        if (!self.layers[key].all) {
+            self.layers[key].all = L.layerGroup();
+        }
+
+        if (subkey && !self.layers[key][subkey]) {
+            self.layers[key][subkey] = L.layerGroup();
+        }
+    }
+
+    function hasLayerData(key, subkey) {
+        console.log(key, subkey, self.layers[key], subkey)
+        if (subkey) {
+            return self.layers[key][subkey].getLayers().length   
+        }
+        else {
+            return self.layers[key].all.getLayers().length;
+        }
+    }
+
     //----------------------------------------------------------------- Basic Map Functions
     // @todo be smarter about scope so we don't need new functions
 
@@ -234,7 +322,6 @@ LX.Map = (function() {
 
 
     //----------------------------------------------------------------- Render
-    self.getZoom = self._map.getZoom;
 
     self.render = function(svg) {
 
@@ -258,8 +345,6 @@ LX.Map = (function() {
         else {
             tiles = L.tileLayer(uri+"{z}/{x}/{y}.png?key=ZokpyarACItmA6NqGNhr", opts)
         }
-
-        console.log(tiles);
         tiles.addTo(self._map);
     }
 
@@ -283,15 +368,12 @@ LX.Map = (function() {
 
     self.show.place = function() {
         console.log("[map] show place");
+        initLayerGroup("place");
 
-        if (!self.layers.place.all) {
-            self.layers.place.all = L.layerGroup();
-        }
 
-        if (!self.layers.place.all.getLayers().length) {
+        if (!hasLayerData("place")) {
             LX.Model.findPlaces()
                 .then(function(response) {
-                    console.log("PLACES", response)
                     response.rows.forEach(function(row) {
                         showPlace(row, self.layers.place.all);
                     });
@@ -308,14 +390,6 @@ LX.Map = (function() {
     }
 
 
-
-    self.show.request = function() {
-        console.log("[map] show requests");
-    }
-
-    self.hide.request = function() {
-        console.log("[map] hide requests");
-    }
 
 
     //----------------------------------------------------------------- Vehicle Layers
@@ -337,12 +411,9 @@ LX.Map = (function() {
 
     self.show.vehicle = function() {
         console.log("[map] show vehicle");
+        initLayerGroup("vehicle");
 
-        if (!self.layers.vehicle.all) {
-            self.layers.vehicle.all = L.layerGroup();
-        }
-
-        if (!self.layers.vehicle.all.getLayers().length) {
+        if (!hasLayerData("vehicle")) {
             LX.Model.findVehicles()
                 .then(function(response) {
                     response.rows.forEach(function(row) {
@@ -360,6 +431,71 @@ LX.Map = (function() {
         self._map.removeLayer(self.layers.vehicle.all);
     }
 
+
+    //----------------------------------------------------------------- Request Layers
+
+    var category_icon_map = {
+        "wtr": "tint",
+        "ful": "gas-pump",
+        "net": "globe",
+        "med": "prescription-bottle-alt",
+        "clo": "tshirt",
+        "pwr": "plug",
+        "eat": "utensils",
+        "bed": "bed"
+    }
+
+    var category_icon_color = {
+        "wtr": "78aef9",
+        "ful": "c075c9",
+        "net": "73cc72",
+        "med": "ff844d",
+        "clo": "50c1b6",
+        "pwr": "f45d90",
+        "eat": "ffcc54",
+        "bed": "FFB000"
+    }
+    function showRequest(row, layer_group) {
+        var latlon = Geohash.decode(row.value.gp[0]);
+        var opts = {};
+        var icon = category_icon_map[row.value.ct[0]];
+        var color = category_icon_color[row.value.ct[0]];
+
+        opts.icon = L.icon.fontAwesomeCircle({ 
+            iconClasses: 'fa fa-'+icon,
+            iconColor: "#"+color,
+            markerColor: '#FFF',
+            markerStroke:"#"+color
+        });
+        var marker = L.marker(latlon, opts);
+        layer_group.addLayer(marker).addTo(self._map);
+    }
+
+    self.show.request = function() {
+
+        console.log("[map] show requests");
+        initLayerGroup("request");
+
+        if (!hasLayerData("request")) {
+
+            LX.Model.findPendingRequests().then(function(response) {
+                response.rows.forEach(function(row) {
+                    showRequest(row, self.layers.request.all);
+                });
+
+            });
+        }
+
+        self._map.addLayer(self.layers.request.all);
+
+    }
+
+    self.hide.request = function() {
+        console.log("[map] hide requests");
+        self._map.removeLayer(self.layers.request.all);
+    }
+
+   
 
 
     //----------------------------------------------------------------- Fire Layers
@@ -382,21 +518,15 @@ LX.Map = (function() {
 
 
     self.show.fire = function() {
+
         console.log("[map] show fire");
-        console.log(self)
-
-
 
         // @todo united states and nearby only for now
         LX.Model.getUnitedStatesGeohash().forEach(function(gh) {
+            
+            initLayerGroup("fire", gh);
 
-            console.log(self.layers.fire);
-
-            if (!self.layers.fire[gh]) {
-                self.layers.fire[gh] = L.layerGroup();
-            }
-
-            if (!self.layers.fire[gh].getLayers().length) {
+            if (!hasLayerData("fire", gh)) {
                 console.log("[map] looking for fire:" +  gh)
                 LX.Model.findWeather("fire", gh)
                     .then(function(response) {
@@ -435,12 +565,13 @@ function findObjectIndexByKey(array, key, value) {
 
 LX.View = (function() {
 	var self = {
+        ctx: {
+            state: null // track conversation / map focus
+        }
     };
 
 
 	//----------------------------------------------------------------- Map Interface
-
-
     function getMyLocation() {
         return new Promise(function(resolve, reject) {
             navigator.geolocation.getCurrentPosition(function(position) {
@@ -467,7 +598,6 @@ LX.View = (function() {
         chat.scrollTop = chat.scrollHeight;
     }
 
-    //----------------------------------------------------------------- Conversation
 
     var transforms = {
         "timed_greeting": function() {
@@ -513,7 +643,6 @@ LX.View = (function() {
         },
         "pending_request_count": function() {
             return LX.Model.findPendingRequests($data.target_geohash).then(function(results) {
-                console.log(results);
                 // @todo use above data
                 var count = results.rows.length;
                 return [count, "unattended", (count == 1 ? "request" : "requests"), "for supplies"].join(" ");
@@ -590,18 +719,15 @@ LX.View = (function() {
 
         if (reply.intents.length) {
             var main_intent = reply.intents[0].intent;
-            console.log(main_intent);
-            console.log(reply);
         }
 
         
         addBotMessage(reply.output.text.join(" "));
-        
+        console.log(reply);
         if (main_intent == "map-display" || main_intent == "place-only" || main_intent == "map-zoom-in-place") {
             var location = "";
             reply.entities.forEach(function(entity) {
                 if (entity.entity == "sys-location") {
-                    console.log("appending location", entity.value);
                     if (location) {
                         location += " ";
                     }
@@ -609,7 +735,19 @@ LX.View = (function() {
                 }
             });
             if (location.length) {
-                actOnLocation(location).then(function() {
+
+                if (self.ctx.state && main_intent == "map-zoom-in-place") {
+                    // focus with state context
+                    location = location + " " + self.ctx.state;
+                }
+
+                actOnLocation(location).then(function(data) {
+                    if (main_intent == "place-only") {
+                        console.log("event region " + location, data);
+                        if (data.state) {
+                            self.ctx.state = data.state;
+                        }
+                    }
                     if (main_intent == "map-zoom-in-place") {
                         actOnZoomInPlace();
                     }
@@ -652,18 +790,16 @@ LX.View = (function() {
         
         self.map.setView([pos.coords.latitude, pos.coords.longitude], 13);
 
-        LX.Model.getNamesFromLocation(pos)
+        return LX.Model.getNamesFromLocation(pos)
             .then(function(data) {
-                console.log("found name", pos, data);
-
                 if (data.results.length) {
-                    var name = data.results[0].display_name;
-                    addBotMessage("Now showing " + name + " on the map.");
+                    var pick = data.results[0];
+                    addBotMessage("Now showing " + pick.display_name + " on the map.");
                 }
                 else {
                     addBotMessage("Now showing a location near you on the map.");
                 }
-                
+                return pick;
             });
     }
 
@@ -673,10 +809,9 @@ LX.View = (function() {
             var pick = data.results[0];
             var zoom_level = 4 + (pick.place_rank)/2;
             var coords = [pick.lat, pick.lon];
-            console.log("coords for new map spot:", pick, coords);
             self.map.setView(coords, zoom_level);
             //addBotMessage( "Now showing " + pick.display_name + " on the map.", 0);
-
+            return pick;
         });
     }
 
@@ -713,7 +848,6 @@ LX.View = (function() {
                 }  
         	},
             chatMessageSubmit: function() {
-                console.log($data.message);
                 $data.messages.push({
                     "me": true,
                     "text": $data.message
