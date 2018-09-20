@@ -10,11 +10,11 @@ LX.Model = (function() {
 
 
 	//----------------------------------------------------------------- Pre-defined Data
-	self.getWeatherTypes = function() {
+	self.getFilterTypes = function() {
 		return [
-			{"id": "fire", "name": "Fires"},
-			{"id": "place", "name": "Places"},
-			{"id": "vehicle", "name": "Vehicles"}
+			{"id": "place", "name": "Places", "active": true},
+			{"id": "vehicle", "name": "Vehicles", "active": true},
+			{"id": "fire", "name": "Fires"}
 		];
 	}
 
@@ -22,36 +22,7 @@ LX.Model = (function() {
 		return ["9z", "dn", "c8", "fo"];
 	}
 
-	self.getFakeMessages = function() {
-		return [
-			{
-				"me": false,
-				"text": "Good morning! We have 49 unattended requests for supplies in the Greater Boston Area."
-			},
-			{
-				"me": true,
-				"text": "categorize please"
-			},
-			{
-				"me": false,
-				"text": "Sure. At this moment, the most needed supply is Water and fastest growing need is Clothing."
-			},
-			{
-				"me": true,
-				"text": "ok, fresh drinking water just arrived at Fenway"
-			},
-			{
-				"me": false,
-				"text": "I recommend dispatch to Roxbury. This area is at highest risk and there is a volunteer driver near you."
-			},
-			{
-				"me": true,
-				"text": "show suggested route avoiding flood risk"
-			}
-		];
-	}
-
-
+	
 
 	//----------------------------------------------------------------- Conversational
 	function postToAPI(route, data) {
@@ -88,6 +59,16 @@ LX.Model = (function() {
 	}
 
 
+	self.getNamesFromGeohash = function(geohash) {
+		var latlon = Geohash.decode(geohash);
+		return postToAPI("reverse_geocode", {
+			"latitude": latlon.lat,
+			"longitude": latlon.lon
+		});
+	}
+
+
+
 	//----------------------------------------------------------------- Database Interactions
 	self.getDatabase = function(name, username, password) {
 		var db_uri = "https://" +db_host+"/"+name;
@@ -99,12 +80,24 @@ LX.Model = (function() {
 	}
 
 	self.db = {};
-	self.db.network = self.getDatabase("lantern-us-demo");
+	self.db.network = self.getDatabase("lantern-boston-flood-scenario");
 	self.db.weather = self.getDatabase("lantern-nexus");
 
 
 
 	//----------------------------------------------------------------- Document Access
+
+	self.findActiveEvents = function() {
+		return self.db.network.query("event/by_status", {
+			key: 1,
+		});
+	}
+
+	self.findPendingRequestCount = function(geohash) {
+		console.log(geohash);
+		return Promise.resolve(49);
+	}
+
 	self.findPlaces = function() {
 		return self.db.network.query("venue/by_geo", {
 			startkey: ["bld"],

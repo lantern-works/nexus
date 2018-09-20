@@ -80,11 +80,11 @@ LX.Model = (function() {
 
 
 	//----------------------------------------------------------------- Pre-defined Data
-	self.getWeatherTypes = function() {
+	self.getFilterTypes = function() {
 		return [
-			{"id": "fire", "name": "Fires"},
-			{"id": "place", "name": "Places"},
-			{"id": "vehicle", "name": "Vehicles"}
+			{"id": "place", "name": "Places", "active": true},
+			{"id": "vehicle", "name": "Vehicles", "active": true},
+			{"id": "fire", "name": "Fires"}
 		];
 	}
 
@@ -92,36 +92,7 @@ LX.Model = (function() {
 		return ["9z", "dn", "c8", "fo"];
 	}
 
-	self.getFakeMessages = function() {
-		return [
-			{
-				"me": false,
-				"text": "Good morning! We have 49 unattended requests for supplies in the Greater Boston Area."
-			},
-			{
-				"me": true,
-				"text": "categorize please"
-			},
-			{
-				"me": false,
-				"text": "Sure. At this moment, the most needed supply is Water and fastest growing need is Clothing."
-			},
-			{
-				"me": true,
-				"text": "ok, fresh drinking water just arrived at Fenway"
-			},
-			{
-				"me": false,
-				"text": "I recommend dispatch to Roxbury. This area is at highest risk and there is a volunteer driver near you."
-			},
-			{
-				"me": true,
-				"text": "show suggested route avoiding flood risk"
-			}
-		];
-	}
-
-
+	
 
 	//----------------------------------------------------------------- Conversational
 	function postToAPI(route, data) {
@@ -158,6 +129,16 @@ LX.Model = (function() {
 	}
 
 
+	self.getNamesFromGeohash = function(geohash) {
+		var latlon = Geohash.decode(geohash);
+		return postToAPI("reverse_geocode", {
+			"latitude": latlon.lat,
+			"longitude": latlon.lon
+		});
+	}
+
+
+
 	//----------------------------------------------------------------- Database Interactions
 	self.getDatabase = function(name, username, password) {
 		var db_uri = "https://" +db_host+"/"+name;
@@ -169,12 +150,24 @@ LX.Model = (function() {
 	}
 
 	self.db = {};
-	self.db.network = self.getDatabase("lantern-us-demo");
+	self.db.network = self.getDatabase("lantern-boston-flood-scenario");
 	self.db.weather = self.getDatabase("lantern-nexus");
 
 
 
 	//----------------------------------------------------------------- Document Access
+
+	self.findActiveEvents = function() {
+		return self.db.network.query("event/by_status", {
+			key: 1,
+		});
+	}
+
+	self.findPendingRequestCount = function(geohash) {
+		console.log(geohash);
+		return Promise.resolve(49);
+	}
+
 	self.findPlaces = function() {
 		return self.db.network.query("venue/by_geo", {
 			startkey: ["bld"],
@@ -244,21 +237,34 @@ LX.View = (function() {
     // we're going to keep layer data for the map here
     self.Layers = {};
 
-    LX.Model.getWeatherTypes().forEach(function(type) {
-        self.Layers[type.id] = {};
-    })
 
 
 
-	self.showMap = function() {
+	self.showMap = function(svg) {
+
+        var tiles, uri, opts;
+
 		console.log("[view] render and center on united states");
-		var gl = L.mapboxGL({
-		    attribution: false,
-		    maxZoom: 16,
-		    crossOrigin: true,
-		    accessToken: 'not-needed',
-		    style: 'https://maps.tilehosting.com/c/ade1b05a-496f-40d1-ae23-5d5aeca37da2/styles/streets/style.json?key=ZokpyarACItmA6NqGNhr'
-		}).addTo(self.Map);
+        uri = "https://maps.tilehosting.com/c/ade1b05a-496f-40d1-ae23-5d5aeca37da2/styles/streets/";
+
+        opts = {
+            attribution: false,
+            maxZoom: 16,
+            crossOrigin: true,
+            accessToken: 'not-needed',
+        }  
+        if (svg) {
+            opts.style = uri + "/style.json?key=ZokpyarACItmA6NqGNhr";
+            tiles = L.mapboxGL(opts)
+        }
+        else {
+            tiles = L.tileLayer(uri+"{z}/{x}/{y}.png?key=ZokpyarACItmA6NqGNhr", opts)
+        }
+
+        console.log(tiles)
+
+        tiles.addTo(self.Map)
+
 	}
 
 
@@ -405,14 +411,117 @@ LX.View = (function() {
 
     //----------------------------------------------------------------- Conversation
 
-    function addBotMessage(text, second_delay) {
-        setTimeout(function() {      
-            $data.messages.push({
-                "me": false,
-                "text": text
+    var transforms = {
+        "timed_greeting": function() {
+
+            var d = new Date();
+            var time = d.getHours();
+
+            if (time < 12)  {
+                return Promise.resolve("Good morning");
+            }
+            else if (time > 17) {
+              return Promise.resolve("Good evening");
+            }
+            else if (time > 12) {
+              return Promise.resolve("Good afternoon");
+            } 
+            else if (time == 12)  {
+                document.write("Hello");
+            }
+        },
+        "active_events": function() {
+            return LX.Model.findActiveEvents().then(function(results) {
+                var count = results.rows.length;
+                var cities = [];
+
+                var fns = [];
+
+                results.rows.forEach(function(row) {
+                    var fn = LX.Model.getNamesFromGeohash(row.value.gp[0]).then(function(names) {
+                        if (names.results[0].city) {
+                            cities.push(names.results[0].city);                            
+                        }
+                    });
+                    fns.push(fn);
+                });
+
+                return Promise.all(fns).then(function() {
+                    addBotMessage("You can say: " + cities.join(", "), 300);
+                    return [count, "active", (count == 1 ? "event" : "events")].join(" ");
+                });
+
             });
-            setTimeout(scrollChat, 10);
-        }, second_delay*1000);
+        },
+        "pending_request_count": function() {
+            return LX.Model.findPendingRequestCount($data.target_geohash).then(function(count) {
+                return [count, "unattended", (count == 1 ? "request" : "requests"), "for supplies"].join(" ");
+            })
+        },
+        "categorized_data": function() {
+            return Promise.resolve("the most needed supply item is Water and least needed is Medical");
+        },
+        "suggested_location": function() {
+            return Promise.resolve("Roxbury");
+        },
+        "suggested_supply_type": function() {
+            return Promise.resolve("medical");
+        },
+        "darkzone_location": function() {
+            return Promise.resolve("Dorchester");
+        }
+    }
+  
+
+
+    function addBotMessage(text, second_delay) {
+
+        if (!text) { 
+            console.log("[view] skip empty bot message");
+            return; 
+        }
+        console.log("[view] add bot message: " + text);
+
+        function replaceMessageVariable(match) {
+            var tpl_var = match[0];
+            var str = match[1]
+
+            return new Promise(function(resolve, reject) {
+                if (transforms.hasOwnProperty(str)) {
+                    transforms[str](tpl_var).then(function(tpl_val) {
+                        text = text.replace(tpl_var, tpl_val);
+                        resolve(text);
+                    })
+                }
+                else {
+                    resolve(text)
+                }
+            });
+        }
+
+
+        // run text through variable converter before returning
+        
+        let reg = /#{([A-Za-z_]*)}/g;
+
+        let match;
+
+        var fns = [];
+        while (match = reg.exec(text)) {
+            var fn = replaceMessageVariable(match);
+            fns.push(fn);
+        }
+
+        Promise.all(fns)
+            .then(function() {
+                setTimeout(function() {      
+                    $data.messages.push({
+                        "me": false,
+                        "text": text
+                    });
+                    setTimeout(scrollChat, 10);
+                }, second_delay);
+            });
     }
 
     function actOnReply(reply) {
@@ -427,16 +536,23 @@ LX.View = (function() {
         
         addBotMessage(reply.output.text.join(" "));
         
-        if (main_intent == "map-display") {
+        if (main_intent == "map-display" || main_intent == "place-only" || main_intent == "map-zoom-in-place") {
             var location = "";
             reply.entities.forEach(function(entity) {
                 if (entity.location) {
                     console.log("appending location", entity.value);
-                    location += " "  + entity.value;
+                    if (location) {
+                        location += " ";
+                    }
+                    location += entity.value;
                 }
             });
             if (location.length) {
-                actOnLocation(location);
+                actOnLocation(location).then(function() {
+                    if (main_intent == "map-zoom-in-place") {
+                        actOnZoomInPlace();
+                    }
+                })
             }
         }
         else if (main_intent == "map-display-near-me") {
@@ -453,14 +569,22 @@ LX.View = (function() {
 
     }
 
+    function actOnZoomInPlace() {
+
+        setTimeout(function() {
+            self.Map.setZoom(self.Map.getZoom()+3);
+            addBotMessage("The most needed item here is clothing.");
+        }, 1000);
+    }
+
     function actOnZoomIn() {
 
-        self.Map.setZoom(self.Map.getZoom()+1); 
+        self.Map.setZoom(self.Map.getZoom()+2); 
     }
 
     function actOnZoomOut() {
 
-        self.Map.setZoom(self.Map.getZoom()-1); 
+        self.Map.setZoom(self.Map.getZoom()-2); 
     }
 
     function actOnMyLocation(pos) {
@@ -484,36 +608,38 @@ LX.View = (function() {
 
     function actOnLocation(name) {
         console.log("[view] find on map: " + name);
-        LX.Model.getLocationsFromName(name).then(function(data) {
-            console.log(data);
-
+        return LX.Model.getLocationsFromName(name).then(function(data) {
             var pick = data.results[0];
-            
-            console.log(pick);            
-            var bounds = pick.boundingbox.reduce(function(result, value, index, array) {
-                if (index % 2 === 0) {
-                    result.push(array.slice(index, index + 2).reverse());
-                }
-                return result;
-            }, []);
-            var zoom_level = 2 + (pick.place_rank)/2;
+            var zoom_level = 3 + (pick.place_rank)/2;
             var coords = [pick.lat, pick.lon];
-
+            console.log("coords for new map spot:", pick, coords);
             self.Map.setView(coords, zoom_level);
-
-            addBotMessage( "Now showing " + pick.display_name + " on the map.", 2);
+            //addBotMessage( "Now showing " + pick.display_name + " on the map.", 0);
 
         });
     }
+
+
+
+
+    //----------------------------------------------------------------- Map Layers
+    LX.Model.getFilterTypes().forEach(function(type) {
+        self.Layers[type.id] = {};
+        if (type.active === true) {
+            self.show[type.id]();
+        }
+    })
+
 
 
 	//----------------------------------------------------------------- Vue Interface
 
 	self.Vue = new Vue({
         data: {
-            filters: LX.Model.getWeatherTypes(),
+            filters: LX.Model.getFilterTypes(),
             message: "",
-            messages: LX.Model.getFakeMessages()
+            messages: [],
+            target_geohash: "drt2z"
         },
         methods: {
         	toggleFilter: function(filter) {
@@ -543,7 +669,7 @@ LX.View = (function() {
         },
         mounted: function() {
         	self.showMap();
-            scrollChat();
+            LX.Model.sendMessage("status").then(actOnReply);
         }
     });
 

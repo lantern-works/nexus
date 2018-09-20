@@ -2643,11 +2643,12 @@ html, body, #map {
 #map {
   background: #8dcaf9;
   width: 70%;
-  margin-right: 30%; }
+  margin-left: 30%; }
 
 .navbar.is-fixed-bottom {
-  padding-right: 30%;
-  z-index: 1000; }
+  padding-left: 30%;
+  z-index: 1000;
+  box-shadow: 0 0 0 0.2em rgba(0, 0, 0, 0.1); }
   .navbar.is-fixed-bottom .navbar-item {
     text-transform: lowercase;
     background: #EEE;
@@ -2669,7 +2670,7 @@ html, body, #map {
   border-left: 1px solid #CCC;
   position: fixed;
   top: 0;
-  right: 0; }
+  left: 0; }
   #chatbox .message {
     margin: 2em;
     background: #EEE;
