@@ -32,20 +32,20 @@ events = [
 	{
 		"_id": "e:boston_X8E29",
 		"st": 3, # complete
-		"gp": ["drt"],
+		"gp": ["drt2z"],
 		"ct": ["fld"],
 		"$ca": then.strftime("%Y-%m-%dT%H:%M:%S")
 	},
 	{
 		"_id": "e:boston_19EC4",
 		"st": 3, # complete
-		"gp": ["drt"],
+		"gp": ["drt2z"],
 		"ct": ["fld"],
 		"$ca": then.strftime("%Y-%m-%dT%H:%M:%S")
 	},
 	{
 		"_id": "e:boston_D392F",
-		"gp": ["drt"],
+		"gp": ["drt2z"],
 		"st": 1, # active
 		"ct": ["fld"],
 		"$ca": now.strftime("%Y-%m-%dT%H:%M:%S")
@@ -56,6 +56,7 @@ for event in events:
 	pp.pprint(event)
 	saveDoc(event)
 
+exit()
 
 #--------------------------------------------------------------------------------
 print("\n\ngenerating venues...\n")
