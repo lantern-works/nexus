@@ -14,6 +14,7 @@ LX.Model = (function() {
 		return [
 			{"id": "place", "name": "Places", "active": true},
 			{"id": "vehicle", "name": "Vehicles", "active": true},
+			{"id": "request", "name": "Requests", "active": true},
 			{"id": "fire", "name": "Fires"}
 		];
 	}
@@ -93,15 +94,17 @@ LX.Model = (function() {
 		});
 	}
 
-	self.findPendingRequestCount = function(geohash) {
+	self.findPendingRequests = function(geohash) {
 		console.log(geohash);
-		return Promise.resolve(49);
+		return self.db.network.query("request/by_geo", {
+
+		});
 	}
 
 	self.findPlaces = function() {
 		return self.db.network.query("venue/by_geo", {
 			startkey: ["bld"],
-			endkey: ["tmp"]
+			endkey: ["tmp", {}]
 		});
 	}
 

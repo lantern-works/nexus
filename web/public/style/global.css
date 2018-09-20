@@ -2676,9 +2676,15 @@ html, body, #map {
     background: #EEE;
     margin-bottom: 1em;
     border-radius: 1em;
-    padding: 1em; }
+    padding: 1em;
+    border-top-right-radius: 0px;
+    margin-right: 5em; }
   #chatbox .my.message {
-    background: #DDD; }
+    background: #DDD;
+    border-top-right-radius: 1em;
+    border-bottom-left-radius: 0px;
+    margin-left: 5em;
+    margin-right: 2em; }
   #chatbox #message-container {
     overflow-y: scroll;
     height: 90%; }

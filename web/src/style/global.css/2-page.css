@@ -59,10 +59,16 @@ html,body,#map {
 		margin-bottom: 1em;
 		border-radius: 1em;
 		padding: 1em;
+		border-top-right-radius: 0px;
+		margin-right: 5em;
 	}
 
 	.my.message {
 		background: #DDD;
+		border-top-right-radius: 1em;
+		border-bottom-left-radius: 0px;
+		margin-left: 5em;
+		margin-right: 2em;
 	}
 
 	#message-container {

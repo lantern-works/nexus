@@ -134,8 +134,10 @@ LX.View = (function() {
     function showPlace(row, layer_group) {
         var latlon = Geohash.decode(row.key[1]);
         var opts = {};
+        var icon = "bed";
         opts.icon = L.icon.fontAwesome({ 
-            markerColor: "#3273dc",
+            iconClasses: 'fa fa-'+icon,
+            markerColor: "#FFAD00",
             iconColor: '#FFF'
         });
 
@@ -154,6 +156,7 @@ LX.View = (function() {
         if (!self.Layers.place.all.getLayers().length) {
             LX.Model.findPlaces()
                 .then(function(response) {
+                    console.log("PLACES", response)
                     response.rows.forEach(function(row) {
                         showPlace(row, self.Layers.place.all);
                     });
@@ -171,15 +174,25 @@ LX.View = (function() {
 
 
 
+    self.show.request = function() {
+        console.log("[view] show requests");
+    }
+
+    self.hide.request = function() {
+        console.log("[view] hide requests");
+    }
+
 
     //----------------------------------------------------------------- Vehicle Layers
 
     function showVehicle(row, layer_group) {
         var latlon = Geohash.decode(row.key[1]);
         var opts = {};
+        var icon = "truck";
         opts.icon = L.icon.fontAwesome({ 
-            markerColor: "#9273dc",
-            iconColor: '#FFF'
+            iconClasses: 'fa fa-'+icon,
+            markerColor: "#6FB1FA",
+            iconColor: '#FFF',
         });
 
         var marker = L.marker(latlon, opts);
@@ -257,7 +270,10 @@ LX.View = (function() {
             });
         },
         "pending_request_count": function() {
-            return LX.Model.findPendingRequestCount($data.target_geohash).then(function(count) {
+            return LX.Model.findPendingRequests($data.target_geohash).then(function(results) {
+                console.log(results);
+                // @todo use above data
+                var count = 49;
                 return [count, "unattended", (count == 1 ? "request" : "requests"), "for supplies"].join(" ");
             })
         },
@@ -375,7 +391,7 @@ LX.View = (function() {
     function actOnZoomInPlace() {
 
         setTimeout(function() {
-            self.Map.setZoom(self.Map.getZoom()+3);
+            self.Map.setZoom(self.Map.getZoom()+2);
             addBotMessage("The most needed item here is clothing.");
         }, 1000);
     }
@@ -413,7 +429,7 @@ LX.View = (function() {
         console.log("[view] find on map: " + name);
         return LX.Model.getLocationsFromName(name).then(function(data) {
             var pick = data.results[0];
-            var zoom_level = 3 + (pick.place_rank)/2;
+            var zoom_level = 4 + (pick.place_rank)/2;
             var coords = [pick.lat, pick.lon];
             console.log("coords for new map spot:", pick, coords);
             self.Map.setView(coords, zoom_level);
