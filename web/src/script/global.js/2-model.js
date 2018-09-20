@@ -28,8 +28,6 @@ LX.Model = (function() {
 	//----------------------------------------------------------------- Conversational
 	function postToAPI(route, data) {
 		var json_data = JSON.stringify(data);
-
-		console.log(json_data);
 		return fetch(window.location.protocol + "//" + web_host + "/api/" + route, {
         		method: "POST",
         		cors: true, 
@@ -76,7 +74,6 @@ LX.Model = (function() {
 		if (username && password) {
 			db_uri = db_uri.replace("://", "://"+username+":"+password+"@");
 		}
-		console.log(db_uri);
 		return new PouchDB(db_uri);
 	}
 
@@ -95,7 +92,6 @@ LX.Model = (function() {
 	}
 
 	self.findPendingRequests = function(geohash) {
-		console.log(geohash);
 		return self.db.network.query("request/by_geo", {
 
 		});

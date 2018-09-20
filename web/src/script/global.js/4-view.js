@@ -12,12 +12,13 @@ function findObjectIndexByKey(array, key, value) {
 
 LX.View = (function() {
 	var self = {
+        ctx: {
+            state: null // track conversation / map focus
+        }
     };
 
 
 	//----------------------------------------------------------------- Map Interface
-
-
     function getMyLocation() {
         return new Promise(function(resolve, reject) {
             navigator.geolocation.getCurrentPosition(function(position) {
@@ -44,7 +45,6 @@ LX.View = (function() {
         chat.scrollTop = chat.scrollHeight;
     }
 
-    //----------------------------------------------------------------- Conversation
 
     var transforms = {
         "timed_greeting": function() {
@@ -90,7 +90,6 @@ LX.View = (function() {
         },
         "pending_request_count": function() {
             return LX.Model.findPendingRequests($data.target_geohash).then(function(results) {
-                console.log(results);
                 // @todo use above data
                 var count = results.rows.length;
                 return [count, "unattended", (count == 1 ? "request" : "requests"), "for supplies"].join(" ");
@@ -167,18 +166,15 @@ LX.View = (function() {
 
         if (reply.intents.length) {
             var main_intent = reply.intents[0].intent;
-            console.log(main_intent);
-            console.log(reply);
         }
 
         
         addBotMessage(reply.output.text.join(" "));
-        
+        console.log(reply);
         if (main_intent == "map-display" || main_intent == "place-only" || main_intent == "map-zoom-in-place") {
             var location = "";
             reply.entities.forEach(function(entity) {
                 if (entity.entity == "sys-location") {
-                    console.log("appending location", entity.value);
                     if (location) {
                         location += " ";
                     }
@@ -186,7 +182,19 @@ LX.View = (function() {
                 }
             });
             if (location.length) {
-                actOnLocation(location).then(function() {
+
+                if (self.ctx.state && main_intent == "map-zoom-in-place") {
+                    // focus with state context
+                    location = location + " " + self.ctx.state;
+                }
+
+                actOnLocation(location).then(function(data) {
+                    if (main_intent == "place-only") {
+                        console.log("event region " + location, data);
+                        if (data.state) {
+                            self.ctx.state = data.state;
+                        }
+                    }
                     if (main_intent == "map-zoom-in-place") {
                         actOnZoomInPlace();
                     }
@@ -229,18 +237,16 @@ LX.View = (function() {
         
         self.map.setView([pos.coords.latitude, pos.coords.longitude], 13);
 
-        LX.Model.getNamesFromLocation(pos)
+        return LX.Model.getNamesFromLocation(pos)
             .then(function(data) {
-                console.log("found name", pos, data);
-
                 if (data.results.length) {
-                    var name = data.results[0].display_name;
-                    addBotMessage("Now showing " + name + " on the map.");
+                    var pick = data.results[0];
+                    addBotMessage("Now showing " + pick.display_name + " on the map.");
                 }
                 else {
                     addBotMessage("Now showing a location near you on the map.");
                 }
-                
+                return pick;
             });
     }
 
@@ -250,10 +256,9 @@ LX.View = (function() {
             var pick = data.results[0];
             var zoom_level = 4 + (pick.place_rank)/2;
             var coords = [pick.lat, pick.lon];
-            console.log("coords for new map spot:", pick, coords);
             self.map.setView(coords, zoom_level);
             //addBotMessage( "Now showing " + pick.display_name + " on the map.", 0);
-
+            return pick;
         });
     }
 
@@ -290,7 +295,6 @@ LX.View = (function() {
                 }  
         	},
             chatMessageSubmit: function() {
-                console.log($data.message);
                 $data.messages.push({
                     "me": true,
                     "text": $data.message

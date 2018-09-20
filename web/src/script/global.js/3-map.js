@@ -16,6 +16,27 @@ LX.Map = (function() {
     });
 
 
+    //----------------------------------------------------------------- Helpers
+    function initLayerGroup(key, subkey) {
+        if (!self.layers[key].all) {
+            self.layers[key].all = L.layerGroup();
+        }
+
+        if (subkey && !self.layers[key][subkey]) {
+            self.layers[key][subkey] = L.layerGroup();
+        }
+    }
+
+    function hasLayerData(key, subkey) {
+        console.log(key, subkey, self.layers[key], subkey)
+        if (subkey) {
+            return self.layers[key][subkey].getLayers().length   
+        }
+        else {
+            return self.layers[key].all.getLayers().length;
+        }
+    }
+
     //----------------------------------------------------------------- Basic Map Functions
     // @todo be smarter about scope so we don't need new functions
 
@@ -34,7 +55,6 @@ LX.Map = (function() {
 
 
     //----------------------------------------------------------------- Render
-    self.getZoom = self._map.getZoom;
 
     self.render = function(svg) {
 
@@ -58,8 +78,6 @@ LX.Map = (function() {
         else {
             tiles = L.tileLayer(uri+"{z}/{x}/{y}.png?key=ZokpyarACItmA6NqGNhr", opts)
         }
-
-        console.log(tiles);
         tiles.addTo(self._map);
     }
 
@@ -83,15 +101,12 @@ LX.Map = (function() {
 
     self.show.place = function() {
         console.log("[map] show place");
+        initLayerGroup("place");
 
-        if (!self.layers.place.all) {
-            self.layers.place.all = L.layerGroup();
-        }
 
-        if (!self.layers.place.all.getLayers().length) {
+        if (!hasLayerData("place")) {
             LX.Model.findPlaces()
                 .then(function(response) {
-                    console.log("PLACES", response)
                     response.rows.forEach(function(row) {
                         showPlace(row, self.layers.place.all);
                     });
@@ -108,14 +123,6 @@ LX.Map = (function() {
     }
 
 
-
-    self.show.request = function() {
-        console.log("[map] show requests");
-    }
-
-    self.hide.request = function() {
-        console.log("[map] hide requests");
-    }
 
 
     //----------------------------------------------------------------- Vehicle Layers
@@ -137,12 +144,9 @@ LX.Map = (function() {
 
     self.show.vehicle = function() {
         console.log("[map] show vehicle");
+        initLayerGroup("vehicle");
 
-        if (!self.layers.vehicle.all) {
-            self.layers.vehicle.all = L.layerGroup();
-        }
-
-        if (!self.layers.vehicle.all.getLayers().length) {
+        if (!hasLayerData("vehicle")) {
             LX.Model.findVehicles()
                 .then(function(response) {
                     response.rows.forEach(function(row) {
@@ -160,6 +164,71 @@ LX.Map = (function() {
         self._map.removeLayer(self.layers.vehicle.all);
     }
 
+
+    //----------------------------------------------------------------- Request Layers
+
+    var category_icon_map = {
+        "wtr": "tint",
+        "ful": "gas-pump",
+        "net": "globe",
+        "med": "prescription-bottle-alt",
+        "clo": "tshirt",
+        "pwr": "plug",
+        "eat": "utensils",
+        "bed": "bed"
+    }
+
+    var category_icon_color = {
+        "wtr": "78aef9",
+        "ful": "c075c9",
+        "net": "73cc72",
+        "med": "ff844d",
+        "clo": "50c1b6",
+        "pwr": "f45d90",
+        "eat": "ffcc54",
+        "bed": "FFB000"
+    }
+    function showRequest(row, layer_group) {
+        var latlon = Geohash.decode(row.value.gp[0]);
+        var opts = {};
+        var icon = category_icon_map[row.value.ct[0]];
+        var color = category_icon_color[row.value.ct[0]];
+
+        opts.icon = L.icon.fontAwesomeCircle({ 
+            iconClasses: 'fa fa-'+icon,
+            iconColor: "#"+color,
+            markerColor: '#FFF',
+            markerStroke:"#"+color
+        });
+        var marker = L.marker(latlon, opts);
+        layer_group.addLayer(marker).addTo(self._map);
+    }
+
+    self.show.request = function() {
+
+        console.log("[map] show requests");
+        initLayerGroup("request");
+
+        if (!hasLayerData("request")) {
+
+            LX.Model.findPendingRequests().then(function(response) {
+                response.rows.forEach(function(row) {
+                    showRequest(row, self.layers.request.all);
+                });
+
+            });
+        }
+
+        self._map.addLayer(self.layers.request.all);
+
+    }
+
+    self.hide.request = function() {
+        console.log("[map] hide requests");
+        self._map.removeLayer(self.layers.request.all);
+    }
+
+   
 
 
     //----------------------------------------------------------------- Fire Layers
@@ -182,21 +251,15 @@ LX.Map = (function() {
 
 
     self.show.fire = function() {
+
         console.log("[map] show fire");
-        console.log(self)
-
-
 
         // @todo united states and nearby only for now
         LX.Model.getUnitedStatesGeohash().forEach(function(gh) {
+            
+            initLayerGroup("fire", gh);
 
-            console.log(self.layers.fire);
-
-            if (!self.layers.fire[gh]) {
-                self.layers.fire[gh] = L.layerGroup();
-            }
-
-            if (!self.layers.fire[gh].getLayers().length) {
+            if (!hasLayerData("fire", gh)) {
                 console.log("[map] looking for fire:" +  gh)
                 LX.Model.findWeather("fire", gh)
                     .then(function(response) {
