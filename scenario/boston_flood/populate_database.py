@@ -64,40 +64,40 @@ def generateEvents():
 		pp.pprint(event)
 		saveDoc(event)
 
-
 #--------------------------------------------------------------------------------
+
+venues = []
+
+def addVenue(title, id=None, lat=None, lon=None, cat=None, parents=[]):
+	venue = {
+		"_id": "v:"+id,
+		"st": 1, # open venue
+		"pt": [],
+		"tt": title,
+		"ct": [cat],
+		"gp": [pg.encode(lat, lon)],
+		"$ca": ""
+	}
+
+	for x in parents:
+		if not venue['$ca']:
+			venue['$ca'] = events[x-1]['$ca']
+		venue['pt'].append(events[x-1]['_id'])
+
+	venues.append(venue)
+
+	return venue
+
+spl = addVenue("Sommerville Public Library", id="spl", lat=42.3847231, lon=-71.0958602, cat="bld", parents=[2,3])
+jmp = addVenue("Joe Moakley Park", id="jmp", lat=42.322418, lon=-71.050986, cat="prk", parents=[3])
+psc = addVenue("Park Street Chuch", id="psc", lat=42.3566598, lon=-71.065598, cat="bld", parents=[1,2,3])
+fen = addVenue("Fenway Park", id="fen", lat=42.345829, lon=-71.096882, cat="prk", parents=[1,2,3])
+frn = addVenue("Franklin Park", id="frn", lat=42.313245, lon=-71.095177, cat="prk", parents=[1,2,3])
+bwf = addVenue("Whole Foods", id="bwf", lat=42.3429892, lon=-71.0910806, cat="bld", parents=[2,3])
+bwt = addVenue("Boston Water Truck", id="bwt", lat=42.3466703, lon=-71.094841, cat="trk", parents=[3])
+
 def generateVenues():
 	print("\n\ngenerating venues...\n")
-
-	venues = []
-
-	def addVenue(title, id=None, lat=None, lon=None, cat=None, parents=[]):
-		venue = {
-			"_id": "v:"+id,
-			"st": 1, # open venue
-			"pt": [],
-			"tt": title,
-			"ct": [cat],
-			"gp": [pg.encode(lat, lon)],
-			"$ca": ""
-		}
-
-		for x in parents:
-			if not venue['$ca']:
-				venue['$ca'] = events[x-1]['$ca']
-			venue['pt'].append(events[x-1]['_id'])
-
-		venues.append(venue)
-
-		return venue
-
-	spl = addVenue("Sommerville Public Library", id="spl", lat=42.3847231, lon=-71.0958602, cat="bld", parents=[2,3])
-	jmp = addVenue("Joe Moakley Park", id="jmp", lat=42.322418, lon=-71.050986, cat="prk", parents=[3])
-	psc = addVenue("Park Street Chuch", id="psc", lat=42.3566598, lon=-71.065598, cat="bld", parents=[1,2,3])
-	fen = addVenue("Fenway Park", id="fen", lat=42.345829, lon=-71.096882, cat="prk", parents=[1,2,3])
-	frn = addVenue("Franklin Park", id="frn", lat=42.313245, lon=-71.095177, cat="prk", parents=[1,2,3])
-	bwf = addVenue("Whole Foods", id="bwf", lat=42.3429892, lon=-71.0910806, cat="bld", parents=[2,3])
-	bwt = addVenue("Boston Water Truck", id="bwt", lat=42.3466703, lon=-71.094841, cat="trk", parents=[3])
 
 	for venue in venues:
 		pp.pprint(venue)
@@ -257,4 +257,7 @@ def generateRoutes():
 
 #--------------------------------------------------------------------------------
 # run desired database population
-generateRequests()
+#generateEvents()
+#generateItems()
+#generateRequests()
+#generateVenues()
