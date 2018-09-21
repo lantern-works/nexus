@@ -3,6 +3,29 @@ window.LX = LX;
 
 LX.Map = (function() {
 
+    var category_icon_map = {
+        "wtr": "tint",
+        "ful": "gas-pump",
+        "net": "globe",
+        "med": "prescription-bottle-alt",
+        "clo": "tshirt",
+        "pwr": "plug",
+        "eat": "utensils",
+        "bed": "bed"
+    }
+
+    var category_icon_color = {
+        "wtr": "78aef9",
+        "ful": "c075c9",
+        "net": "73cc72",
+        "med": "ff844d",
+        "clo": "50c1b6",
+        "pwr": "f45d90",
+        "eat": "ffcc54",
+        "bed": "FFB000"
+    }
+
+    
 	var self = {
 		_map: L.map('map').setView([38.42,-102.79], 4),
         layers: {},
@@ -28,7 +51,6 @@ LX.Map = (function() {
     }
 
     function hasLayerData(key, subkey) {
-        console.log(key, subkey, self.layers[key], subkey)
         if (subkey) {
             return self.layers[key][subkey].getLayers().length   
         }
@@ -167,27 +189,6 @@ LX.Map = (function() {
 
     //----------------------------------------------------------------- Request Layers
 
-    var category_icon_map = {
-        "wtr": "tint",
-        "ful": "gas-pump",
-        "net": "globe",
-        "med": "prescription-bottle-alt",
-        "clo": "tshirt",
-        "pwr": "plug",
-        "eat": "utensils",
-        "bed": "bed"
-    }
-
-    var category_icon_color = {
-        "wtr": "78aef9",
-        "ful": "c075c9",
-        "net": "73cc72",
-        "med": "ff844d",
-        "clo": "50c1b6",
-        "pwr": "f45d90",
-        "eat": "ffcc54",
-        "bed": "FFB000"
-    }
     function showRequest(row, layer_group) {
         var latlon = Geohash.decode(row.value.gp[0]);
         var opts = {};

@@ -11,9 +11,26 @@ function findObjectIndexByKey(array, key, value) {
 }
 
 LX.View = (function() {
+
+
+    var category_name_map = {
+        "wtr": "Water",
+        "ful": "Fuel",
+        "net": "Internet",
+        "med": "Medical",
+        "clo": "Clothing",
+        "pwr": "Power",
+        "eat": "Food",
+        "bed": "Shelter"
+    }
+
+
 	var self = {
         ctx: {
-            state: null // track conversation / map focus
+            coords: [],
+            geohash: "drt2z",
+            state: null, // track conversation / map focus
+            supply: null // what user has to work with at the moment
         }
     };
 
@@ -89,23 +106,47 @@ LX.View = (function() {
             });
         },
         "pending_request_count": function() {
-            return LX.Model.findPendingRequests($data.target_geohash).then(function(results) {
+            return LX.Model.findPendingRequests(self.ctx.geohash).then(function(results) {
                 // @todo use above data
                 var count = results.rows.length;
                 return [count, "unattended", (count == 1 ? "request" : "requests"), "for supplies"].join(" ");
             })
         },
         "categorized_data": function() {
-            return Promise.resolve("the most needed supply item is Water and least needed is Medical");
+
+            return LX.Model.findPendingRequests(self.ctx.geohash).then(function(results) {
+                var tally = {};
+                var flip = {};
+                // @todo use map reduce for speed
+                results.rows.forEach(function(row) {
+                    row.value.ct.forEach(function(cat) {
+                        tally[cat] = tally[cat] || 0;
+                        tally[cat]++;
+                    });
+                });
+
+                console.log(tally);
+                var most_needed = Object.keys(tally).reduce(function(a, b){ return tally[a] > tally[b] ? a : b });
+                var least_needed = Object.keys(tally).reduce(function(a, b){ return tally[a] < tally[b] ? a : b });
+
+                return Promise.resolve("the most needed supply item is " + category_name_map[most_needed] + 
+                        " and least needed is " + category_name_map[least_needed]);
+            });
         },
         "suggested_location": function() {
-            return Promise.resolve("Roxbury");
+            var place_name = "Roxbury";
+            if (self.ctx.state) {
+                actOnLocation(place_name + " " + self.ctx.state);
+            }
+            return Promise.resolve(place_name);
         },
         "suggested_supply_type": function() {
-            return Promise.resolve("medical");
+            var suggestion = self.ctx.supply || "med";
+            console.log(suggestion)
+            return Promise.resolve(category_name_map[suggestion]);
         },
         "darkzone_location": function() {
-            return Promise.resolve("Dorchester");
+            return Promise.resolve("South Boston");
         }
     }
   
@@ -125,7 +166,7 @@ LX.View = (function() {
 
             return new Promise(function(resolve, reject) {
                 if (transforms.hasOwnProperty(str)) {
-                    transforms[str](tpl_var).then(function(tpl_val) {
+                    transforms[str]().then(function(tpl_val) {
                         text = text.replace(tpl_var, tpl_val);
                         resolve(text);
                     })
@@ -168,9 +209,18 @@ LX.View = (function() {
             var main_intent = reply.intents[0].intent;
         }
 
+        if (main_intent == "new-supply-item") {
+            reply.entities.forEach(function(entity) {
+                if (entity.entity == "supply-item") {
+                    self.ctx.supply = entity["value"];
+                }
+            })
+        }
+
+        console.log("chat context", self.ctx, reply);
         
         addBotMessage(reply.output.text.join(" "));
-        console.log(reply);
+
         if (main_intent == "map-display" || main_intent == "place-only" || main_intent == "map-zoom-in-place") {
             var location = "";
             reply.entities.forEach(function(entity) {
@@ -266,7 +316,7 @@ LX.View = (function() {
 
 
     //----------------------------------------------------------------- Map Layers
-    LX.Model.getFilterTypes().forEach(function(type) {
+    LX.Model.getFilterTypes().reverse().forEach(function(type) {
         if (type.active === true) {
             self.map.show[type.id]();
         }
@@ -280,8 +330,7 @@ LX.View = (function() {
         data: {
             filters: LX.Model.getFilterTypes(),
             message: "",
-            messages: [],
-            target_geohash: "drt2z"
+            messages: []
         },
         methods: {
         	toggleFilter: function(filter) {
