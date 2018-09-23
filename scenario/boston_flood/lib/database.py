@@ -1,4 +1,8 @@
 import os,pycouchdb
+import pprint
+pp = pprint.PrettyPrinter(depth=6)
+os.environ['CLOUDANT_API_KEY'] =  'ablezvolyingenewallatess'
+os.environ['CLOUDANT_API_PASS'] = '0cf294e050beb874c7d990bb68e39803ed914a8f'
 
 # setup database connector
 uri = "https://" + os.environ['CLOUDANT_API_KEY'] + ":" + os.environ['CLOUDANT_API_PASS'] + "@37bd9e99-2780-4965-8da8-b6b1ebb682bc-bluemix.cloudant.com"
@@ -16,8 +20,9 @@ key_map = {
 
 def hasParent(doc, event_list):
 	parent_match = False
-	print(event_list, doc)
+	# print(event_list, doc)
 	for event_id in event_list:
+		# print(doc)
 		if event_id in doc["pt"]:
 			parent_match = True
 	return parent_match
@@ -41,7 +46,7 @@ def getDocsForEvents(event_list):
 				data["events"].append(doc)
 
 		# all other documents that have events as a parent
-		elif hasParent(doc, event_list):
+		elif "pt" in doc and hasParent(doc, event_list):
 			data[key_map[doc["_id"][0]]].append(doc)
 
 	return data
