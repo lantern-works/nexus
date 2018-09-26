@@ -153,39 +153,46 @@ def generateRequests():
 
 
 #--------------------------------------------------------------------------------
-
+items = []
 def generateItems():
 	print("\n\ngenerating items...\n")
-
-	items = []
-
-	def addItem(venue=[],cat="", event=None):
-
-		item = {
-			"_id": ":".join(["i", cat, event['_id'], venue['_id']]),
-			"st": 1, # available supply item
-			"ct": [ cat ],
-			"pt": [ venue['_id'], event['_id']],
-			"$ca": event['$ca']
-		}
-		items.append(item)
-		return item
-
-	# add supplies for current storm event
-	addItem(venue=fen, cat="bed", event=events[2])
-	addItem(venue=fen, cat="pwr", event=events[2])
-	addItem(venue=bwf, cat="wtr", event=events[2])
-	addItem(venue=bwf, cat="eat", event=events[2])
-
-
-	addItem(venue=bwf, cat="wtr", event=events[1])
-
-	addItem(venue=bwf, cat="wtr", event=events[0])
-
-
 	for item in items:
 		pp.pprint(item)
-		saveDoc(item)
+		saveDoc(item, resave=True)
+
+
+def addItem(venue=[],cat="", event=None):
+
+	item = {
+		"_id": ":".join(["i", cat, event['_id'], venue['_id']]),
+		"st": 1, # available supply item
+		"ct": [ cat ],
+		"pt": [ venue['_id'], event['_id']],
+		"$ca": event['$ca']
+	}
+	items.append(item)
+	return item
+
+# add supplies for current storm event
+addItem(venue=fen, cat="bed", event=events[2])
+addItem(venue=fen, cat="pwr", event=events[2])
+addItem(venue=bwf, cat="wtr", event=events[2])
+addItem(venue=bwf, cat="eat", event=events[2])
+addItem(venue=bwf, cat="wtr", event=events[1])
+addItem(venue=bwf, cat="wtr", event=events[0])
+
+
+addItem(venue=jmp, cat="clo", event=events[2])
+
+addItem(venue=psc, cat="eat", event=events[2])
+addItem(venue=psc, cat="med", event=events[2])
+
+addItem(venue=bwt, cat="wtr", event=events[2])
+
+addItem(venue=frn, cat="bed", event=events[2])
+addItem(venue=frn, cat="wtr", event=events[2])
+
+addItem(venue=spl, cat="net", event=events[2])
 
 
 
@@ -258,6 +265,6 @@ def generateRoutes():
 #--------------------------------------------------------------------------------
 # run desired database population
 #generateEvents()
-#generateItems()
+generateItems()
 #generateRequests()
 #generateVenues()

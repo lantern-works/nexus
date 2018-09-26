@@ -1,9 +1,12 @@
 import os,pycouchdb
 
 # setup database connector
-uri = "https://" + os.environ['CLOUDANT_API_KEY'] + ":" + os.environ['CLOUDANT_API_PASS'] + "@37bd9e99-2780-4965-8da8-b6b1ebb682bc-bluemix.cloudant.com"
+#uri = "https://" + os.environ['CLOUDANT_API_KEY'] + ":" + os.environ['CLOUDANT_API_PASS'] + "@37bd9e99-2780-4965-8da8-b6b1ebb682bc-bluemix.cloudant.com"
+#db = server.database("lantern-boston-flood-scenario")
+
+uri = "https://lantern.global"
 server = pycouchdb.Server(uri, verify=True)
-db = server.database("lantern-boston-flood-scenario")
+db = server.database("lnt")
 
 
 key_map = {
