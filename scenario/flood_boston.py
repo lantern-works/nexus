@@ -66,6 +66,51 @@ def generateEvents():
 
 #--------------------------------------------------------------------------------
 
+devices = [
+	{
+		"_id": "d:boston_l1",
+		"st": 1,
+		"gp": ["drt2w3hk"],
+		"$ca": first.strftime("%Y-%m-%dT%H:%M:%S")
+	},
+	{
+		"_id": "d:boston_l2",
+		"st": 1,
+		"gp": ["drt2wn9n"],
+		"ct": ["fld"],
+		"$ca": then.strftime("%Y-%m-%dT%H:%M:%S")
+	},
+	{
+		"_id": "d:boston_l3",
+		"gp": ["drt2v2dn"],
+		"st": 1, # active
+		"$ca": now.strftime("%Y-%m-%dT%H:%M:%S")
+	},
+	{
+		"_id": "d:boston_l4",
+		"gp": ["drt2dd"],
+		"st": 1, # active
+		"$ca": now.strftime("%Y-%m-%dT%H:%M:%S")
+	},
+	{
+		"_id": "d:boston_l5",
+		"gp": ["drt2zd"],
+		"st": 1, # active
+		"$ca": now.strftime("%Y-%m-%dT%H:%M:%S")
+	}
+]
+
+
+def generateDevices():
+	print("\n\ngenerating devices...\n")
+	for device in devices:
+		pp.pprint(device)
+		saveDoc(device, resave=True)
+
+
+
+#--------------------------------------------------------------------------------
+
 venues = []
 
 def addVenue(title, id=None, lat=None, lon=None, cat=None, parents=[]):
@@ -265,6 +310,7 @@ def generateRoutes():
 #--------------------------------------------------------------------------------
 # run desired database population
 #generateEvents()
-generateItems()
+#generateItems()
 #generateRequests()
 #generateVenues()
+generateDevices()
