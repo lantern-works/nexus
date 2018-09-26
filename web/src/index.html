@@ -2,7 +2,7 @@ extends _layouts/_master.pug
 
 block content
 
-    nav.navbar.is-fixed-bottom(role="navigation" aria-label="main navigation")
+    nav.navbar.is-fixed-top(role="navigation" aria-label="main navigation")
         .navbar-brand
             .navbar-item(
             	v-for="filter in filters"
@@ -11,10 +11,31 @@ block content
             	:class="filter.active === true ? 'active' : 'inactive'"
             ) {{ filter.name }}
 
+
+    #navbox
+        .logo
+            img(src="./style/logo.png")
+
+        ul
+            li(@click="handleNavButton('route')")
+                .icon
+                    i.fas.fa-route
+            li(@click="handleNavButton('status')")
+                .icon
+                    i.fas.fa-bolt
+            li(@click="handleNavButton('broadcast')")
+                .icon
+                    i.fas.fa-bullhorn
+
     #chatbox.has-shadow
-        #message-container
+        #message-container(v-cloak)
             div(:class="(message.me ? 'my message' : 'bot message')" v-for="message in messages") 
                 | {{ message.text }}
+                span(v-if="message.icon")
+                    i.fas(:class="'fa-'+message.icon")
 
         form.prompt(@submit.prevent="chatMessageSubmit")
             input.input.is-rounded(type="text" placeholder="Enter message here" v-model="message" autofocus="autofocus")
+            a.btn(@click="chatMessageSubmit" :class="is_sending ? 'active' : 'inactive'")
+                .icon.is-large
+                    i.fas.fa-envelope

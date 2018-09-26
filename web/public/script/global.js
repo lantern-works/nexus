@@ -101,8 +101,13 @@ L.Icon.FontAwesomeCircle = L.Icon.extend({
         var iconSpan = L.DomUtil.create('span', options.iconClasses + ' feature-icon');
         iconSpan.style.color = options.iconColor;
         iconSpan.style.textAlign = 'center';
-        iconSpan.style.backgroundColor = options.markerColor;
         iconSpan.style.borderColor = options.markerStroke;
+
+        if(options.markerColor) {
+            iconSpan.style.backgroundColor = options.markerColor;
+        }
+
+
 
         // XY position adjustments
         if(options.iconYOffset && options.iconYOffset != 0) iconSpan.style.marginTop = options.iconYOffset + 'px';
@@ -110,7 +115,7 @@ L.Icon.FontAwesomeCircle = L.Icon.extend({
 
         // marker icon L.DomUtil doesn't seem to like svg, just append out html directly
         var markerSvg = document.createElement('div');
-        markerSvg.className = "marker-icon-svg";
+        markerSvg.className = "marker-icon-svg-circle";
         markerSvg.innerHTML = '<svg ' +
             'width="32px" ' +
             'height="52px" ' +
@@ -146,15 +151,19 @@ LX.Model = (function() {
 
 	var db_host = "37bd9e99-2780-4965-8da8-b6b1ebb682bc-bluemix.cloudant.com";
 	var web_host = window.location.host.replace(":3000", ":8080")
-	var self = {};
+	var self = {
+		history: []
+	};
 
 
 
 	//----------------------------------------------------------------- Pre-defined Data
 	self.getFilterTypes = function() {
 		return [
-			{"id": "place", "name": "Places", "active": true},
 			{"id": "vehicle", "name": "Vehicles", "active": true},
+			{"id": "place", "name": "Places", "active": true},
+			{"id": "device", "name": "Devices", "active": true},
+			{"id": "route", "name": "Routes", "active": true},
 			{"id": "request", "name": "Requests", "active": true},
 			{"id": "fire", "name": "Fires"}
 		];
@@ -184,6 +193,11 @@ LX.Model = (function() {
 	}
 
 	self.sendMessage = function(text) {
+		if (!text) {
+			console.log("[model] skip empty message send");
+			return Promise.resolve();
+		}
+		self.history.push(text);
 		return postToAPI("message", {"text": text});
 	}
 
@@ -210,8 +224,8 @@ LX.Model = (function() {
 
 
 	//----------------------------------------------------------------- Database Interactions
-	self.getDatabase = function(name, username, password) {
-		var db_uri = "https://" +db_host+"/"+name;
+	self.getDatabase = function(name, username, password, host) {
+		var db_uri = window.location.protocol + "//" + (host || db_host) +"/"+name;
 		if (username && password) {
 			db_uri = db_uri.replace("://", "://"+username+":"+password+"@");
 		}
@@ -219,7 +233,7 @@ LX.Model = (function() {
 	}
 
 	self.db = {};
-	self.db.network = self.getDatabase("lantern-boston-flood-scenario");
+	self.db.network = self.getDatabase("lnt", null, null, "lantern.global");
 	self.db.weather = self.getDatabase("lantern-nexus");
 
 
@@ -234,7 +248,14 @@ LX.Model = (function() {
 
 	self.findPendingRequests = function(geohash) {
 		return self.db.network.query("request/by_geo", {
+		});
+	}
 
+
+	self.findRoutes = function(geo_prefix) {
+		return self.db.network.query("route/by_geo", {
+			startkey: geo_prefix,
+			endkey: geo_prefix +"\ufff0"
 		});
 	}
 
@@ -249,6 +270,13 @@ LX.Model = (function() {
 		return self.db.network.query("venue/by_geo", {
 			startkey: ["trk"],
 			endkey: ["trk", "\ufff0"]
+		});
+	}
+
+	self.findDevices = function(geo_prefix) {
+		return self.db.network.query("device/by_geo", {
+			startkey: geo_prefix,
+			endkey: geo_prefix +"\ufff0"
 		});
 	}
 
@@ -297,7 +325,8 @@ LX.Map = (function() {
 		_map: L.map('map').setView([38.42,-102.79], 4),
         layers: {},
         show: {},
-        hide: {}
+        hide: {},
+        focus: {}
 	};
 
 
@@ -348,7 +377,7 @@ LX.Map = (function() {
     self.render = function(svg) {
 
 
-        var uri = "https://maps.tilehosting.com/c/ade1b05a-496f-40d1-ae23-5d5aeca37da2/styles/streets/";
+        var uri = "https://maps.tilehosting.com/c/ade1b05a-496f-40d1-ae23-5d5aeca37da2/styles/voyager/";
 
         var tiles, uri, opts;
 
@@ -371,21 +400,82 @@ LX.Map = (function() {
     }
 
 
-    //----------------------------------------------------------------- Place Layers
+    //----------------------------------------------------------------- Device Layers
 
-    function showPlace(row, layer_group) {
-        var latlon = Geohash.decode(row.key[1]);
+    function showDevice(row, layer_group) {
+        var latlon = Geohash.decode(row.key);
         var opts = {};
-        var icon = "bed";
+        var icon = "broadcast-tower";
+
+        console.log(latlon)
         opts.icon = L.icon.fontAwesome({ 
             iconClasses: 'fa fa-'+icon,
-            markerColor: "#FFAD00",
+            markerColor: "#3273dc",
             iconColor: '#FFF'
         });
 
         var marker = L.marker(latlon, opts);
         layer_group.addLayer(marker).addTo(self._map);
+
+        marker.on("click", function(e) {
+            console.log(row.value);
+        });
     }
+
+
+    self.show.device = function() {
+        console.log("[map] show device");
+        initLayerGroup("device");
+
+        if (!hasLayerData("device")) {
+            LX.Model.findDevices()
+                .then(function(response) {
+                    console.log(response)
+                    response.rows.forEach(function(row) {
+                        showDevice(row, self.layers.device.all);
+                    });
+                });
+        }
+
+        self._map.addLayer(self.layers.device.all);
+    }
+
+
+    self.hide.device = function() {
+        console.log("[map] hide device");
+        self._map.removeLayer(self.layers.device.all);
+    }
+
+
+    self.focus.device = function() {
+        self.layers.device.all.bringToFront();
+
+    }
+
+
+
+    //----------------------------------------------------------------- Place Layers
+
+    function showPlace(row, layer_group) {
+        var latlon = Geohash.decode(row.key[1]);
+        var opts = {};
+        var icon = "flag";
+        opts.icon = L.icon.fontAwesome({ 
+            iconClasses: 'fa fa-'+icon,
+            markerColor: "#4E535D",
+            iconColor: '#FFF'
+        });
+
+        var marker = L.marker(latlon, opts);
+        layer_group.addLayer(marker).addTo(self._map);
+
+        marker.on("click", function(e) {
+            console.log(row.value);
+        });
+
+
+    }
+
 
 
     self.show.place = function() {
@@ -414,13 +504,52 @@ LX.Map = (function() {
 
 
 
+   //----------------------------------------------------------------- Route Layers
+
+    self.showOneRoute = function(route) {
+
+
+        // var layer_group = self.layers["route"].all;
+
+        // console.log("LAYER GROUP", layer_group);
+
+        var latlngs = [];
+        route.gp.forEach(function(geo) {
+            latlngs.push(Geohash.decode(geo));
+        });
+
+        console.log("SHOWING ROUTE", latlngs);
+
+        var control = L.Routing.control({
+            waypoints: latlngs,
+            routeWhileDragging: true
+        });
+
+        control.addTo(self._map);
+
+
+    }
+
+    self.show.route = function() {
+        console.log("[map] show route layer");
+        initLayerGroup("route");
+        self._map.addLayer(self.layers.route.all);
+    }
+
+
+    self.hide.vehicle = function() {
+        console.log("[map] hide route");
+        self._map.removeLayer(self.layers.route.all);
+    }
+
+
     //----------------------------------------------------------------- Vehicle Layers
 
     function showVehicle(row, layer_group) {
         var latlon = Geohash.decode(row.key[1]);
         var opts = {};
         var icon = "truck";
-        opts.icon = L.icon.fontAwesome({ 
+        opts.icon = L.icon.fontAwesomeCircle({ 
             iconClasses: 'fa fa-'+icon,
             markerColor: "#6FB1FA",
             iconColor: '#FFF',
@@ -428,6 +557,12 @@ LX.Map = (function() {
 
         var marker = L.marker(latlon, opts);
         layer_group.addLayer(marker).addTo(self._map);
+
+
+        marker.on("click", function(e) {
+            console.log(row.value);
+        });
+
     }
 
 
@@ -465,11 +600,17 @@ LX.Map = (function() {
         opts.icon = L.icon.fontAwesomeCircle({ 
             iconClasses: 'fa fa-'+icon,
             iconColor: "#"+color,
-            markerColor: '#FFF',
             markerStroke:"#"+color
         });
         var marker = L.marker(latlon, opts);
         layer_group.addLayer(marker).addTo(self._map);
+
+
+
+        marker.on("click", function(e) {
+            console.log(row.value);
+        });
+        
     }
 
     self.show.request = function() {
@@ -487,7 +628,7 @@ LX.Map = (function() {
             });
         }
 
-        self._map.addLayer(self.layers.request.all);
+        self._map.addLayer(self.layers.request.all, true);
 
     }
 
@@ -549,6 +690,10 @@ LX.Map = (function() {
         }
     }
 
+
+
+
+
 	return self;
 
 });
@@ -576,13 +721,15 @@ LX.View = (function() {
         "pwr": "Power",
         "eat": "Food",
         "bed": "Shelter"
-    }
+    };
 
 
 	var self = {
         ctx: {
             coords: [],
             geohash: "drt2z",
+            event_type: "",
+            event_name: "",
             state: null, // track conversation / map focus
             supply: null // what user has to work with at the moment
         }
@@ -633,27 +780,35 @@ LX.View = (function() {
               return Promise.resolve("Good afternoon");
             } 
             else if (time == 12)  {
-                document.write("Hello");
+                Promise.resolve("Good day");
             }
         },
         "active_events": function() {
             return LX.Model.findActiveEvents().then(function(results) {
                 var count = results.rows.length;
-                var cities = [];
+                var places = [];
 
                 var fns = [];
 
                 results.rows.forEach(function(row) {
-                    var fn = LX.Model.getNamesFromGeohash(row.value.gp[0]).then(function(names) {
-                        if (names.results[0].city) {
-                            cities.push(names.results[0].city);                            
-                        }
-                    });
-                    fns.push(fn);
+                    if (row.value.tt) {
+                        places.push(row.value.tt)
+                    }
+                    else {
+                        var fn = LX.Model.getNamesFromGeohash(row.value.gp[0]).then(function(names) {
+                            if (names.results[0].city) {
+                                places.push(names.results[0].city);                            
+                            }
+                            else {
+                                places.push(names.results[0].county);
+                            }
+                        });
+                        fns.push(fn);
+                    }
                 });
 
                 return Promise.all(fns).then(function() {
-                    addBotMessage("You can say: " + cities.join(", "), 300);
+                    addBotMessage("You can say: " + places.join(", "), 300);
                     return [count, "active", (count == 1 ? "event" : "events")].join(" ");
                 });
 
@@ -661,9 +816,22 @@ LX.View = (function() {
         },
         "pending_request_count": function() {
             return LX.Model.findPendingRequests(self.ctx.geohash).then(function(results) {
-                // @todo use above data
+                // @todo filter to juse place
                 var count = results.rows.length;
                 return [count, "unattended", (count == 1 ? "request" : "requests"), "for supplies"].join(" ");
+            })
+        },
+        "pending_request_count_event": function() {
+            return LX.Model.findPendingRequests(self.ctx.geohash).then(function(results) {
+                // @todo filter to just event
+                var count = results.rows.length;
+                return [count, "unattended", (count == 1 ? "request" : "requests"), "for supplies"].join(" ");
+            })
+
+        },
+        "lantern_device_count": function() {
+            return LX.Model.findDevices(self.ctx.geohash.substr(0,4)).then(function(results) {
+                return results.rows.length;
             })
         },
         "categorized_data": function() {
@@ -678,8 +846,6 @@ LX.View = (function() {
                         tally[cat]++;
                     });
                 });
-
-                console.log(tally);
                 var most_needed = Object.keys(tally).reduce(function(a, b){ return tally[a] > tally[b] ? a : b });
                 var least_needed = Object.keys(tally).reduce(function(a, b){ return tally[a] < tally[b] ? a : b });
 
@@ -696,7 +862,6 @@ LX.View = (function() {
         },
         "suggested_supply_type": function() {
             var suggestion = self.ctx.supply || "med";
-            console.log(suggestion)
             return Promise.resolve(category_name_map[suggestion]);
         },
         "darkzone_location": function() {
@@ -731,7 +896,6 @@ LX.View = (function() {
             });
         }
 
-
         // run text through variable converter before returning
         
         let reg = /#{([A-Za-z_]*)}/g;
@@ -758,9 +922,21 @@ LX.View = (function() {
 
     function actOnReply(reply) {
         
+        if (!reply) {
+            return;
+        }
 
         if (reply.intents.length) {
             var main_intent = reply.intents[0].intent;
+        }
+
+
+        if (main_intent == "event-only") {
+            reply.entities.forEach(function(entity) {
+                if (entity.entity == "event") {
+                    self.ctx.event_type = entity["value"];
+                }
+            })
         }
 
         if (main_intent == "new-supply-item") {
@@ -775,7 +951,7 @@ LX.View = (function() {
         
         addBotMessage(reply.output.text.join(" "));
 
-        if (main_intent == "map-display" || main_intent == "place-only" || main_intent == "map-zoom-in-place") {
+        if (main_intent == "map-display" || main_intent == "place-only" || main_intent == "event-only" || main_intent == "map-zoom-in-place") {
             var location = "";
             reply.entities.forEach(function(entity) {
                 if (entity.entity == "sys-location") {
@@ -815,21 +991,39 @@ LX.View = (function() {
         else if (main_intent == "map-zoom-out") {
             actOnZoomOut();
         }
-            
+        else if (main_intent == "route-prepare") {
+            LX.Model.findRoutes(self.ctx.geohash.substr(0,3)).then(function(results) {
+                var routes = {};
+                results.rows.forEach(function(row) {
+                    if (row.value.st && row.value.st < 2) {
+                        routes[row.id] = row.value;
+                    }
+
+                });
+
+                for (var idx in routes) {
+                    console.log("show one route", routes[idx]);
+                    console.log(routes[idx]);
+                    self.map.showOneRoute(routes[idx]);
+                }
+
+                addBotMessage("I found " + Object.keys(routes).length + " existing routes in this region.", 1000);
+            });
+        }    
 
     }
 
     function actOnZoomInPlace() {
 
         setTimeout(function() {
-            self.map.setZoom(self.map.getZoom()+2);
+            self.map.setZoom(self.map.getZoom()+3);
             addBotMessage("The most needed item here is clothing.");
         }, 1000);
     }
 
     function actOnZoomIn() {
 
-        self.map.setZoom(self.map.getZoom()+2); 
+        self.map.setZoom(self.map.getZoom()+3 ); 
     }
 
     function actOnZoomOut() {
@@ -839,7 +1033,7 @@ LX.View = (function() {
 
     function actOnMyLocation(pos) {
         
-        self.map.setView([pos.coords.latitude, pos.coords.longitude], 13);
+        self.map.setView([pos.coords.latitude, pos.coords.longitude], 10);
 
         return LX.Model.getNamesFromLocation(pos)
             .then(function(data) {
@@ -869,6 +1063,7 @@ LX.View = (function() {
 
 
 
+
     //----------------------------------------------------------------- Map Layers
     LX.Model.getFilterTypes().reverse().forEach(function(type) {
         if (type.active === true) {
@@ -884,7 +1079,8 @@ LX.View = (function() {
         data: {
             filters: LX.Model.getFilterTypes(),
             message: "",
-            messages: []
+            messages: [],
+            is_sending: false
         },
         methods: {
         	toggleFilter: function(filter) {
@@ -898,6 +1094,11 @@ LX.View = (function() {
                 }  
         	},
             chatMessageSubmit: function() {
+
+                if (!$data.message) {
+                    return console.log("[view] skip empty message");
+                }
+
                 $data.messages.push({
                     "me": true,
                     "text": $data.message
@@ -906,14 +1107,38 @@ LX.View = (function() {
 
                 LX.Model.sendMessage($data.message).then(actOnReply);
 
+                self.Vue.is_sending = true;
+
                 // always scroll to bottom after sending message
                 setTimeout(scrollChat, 10);
+                setTimeout(function() {
+                    self.Vue.is_sending = false;
+                }, 250+(Math.random()*100));
                 $data.message = "";
+            },
+            handleNavButton: function(action) {
+                var map = {
+                    "status": "bolt",
+                    "broadcast": "bullhorn",
+                    "route": "route"
+                }
+
+                if (action) {
+
+                    $data.messages.push({
+                        "me": true,
+                        "icon": map[action]
+                    });
+
+
+                    LX.Model.sendMessage(action).then(actOnReply);
+                }
             }
         },
         mounted: function() {
         	self.map.render();
-            LX.Model.sendMessage("status").then(actOnReply);
+            actOnLocation("Boston");
+            addBotMessage("#{timed_greeting}! I'm here to help with recovery and communication. You can tell me about your goals for today or ask me questions about the places around you.")
         }
     });
 

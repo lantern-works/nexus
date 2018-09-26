@@ -30,7 +30,8 @@ LX.Map = (function() {
 		_map: L.map('map').setView([38.42,-102.79], 4),
         layers: {},
         show: {},
-        hide: {}
+        hide: {},
+        focus: {}
 	};
 
 
@@ -81,7 +82,7 @@ LX.Map = (function() {
     self.render = function(svg) {
 
 
-        var uri = "https://maps.tilehosting.com/c/ade1b05a-496f-40d1-ae23-5d5aeca37da2/styles/streets/";
+        var uri = "https://maps.tilehosting.com/c/ade1b05a-496f-40d1-ae23-5d5aeca37da2/styles/voyager/";
 
         var tiles, uri, opts;
 
@@ -104,21 +105,82 @@ LX.Map = (function() {
     }
 
 
-    //----------------------------------------------------------------- Place Layers
+    //----------------------------------------------------------------- Device Layers
 
-    function showPlace(row, layer_group) {
-        var latlon = Geohash.decode(row.key[1]);
+    function showDevice(row, layer_group) {
+        var latlon = Geohash.decode(row.key);
         var opts = {};
-        var icon = "bed";
+        var icon = "broadcast-tower";
+
+        console.log(latlon)
         opts.icon = L.icon.fontAwesome({ 
             iconClasses: 'fa fa-'+icon,
-            markerColor: "#FFAD00",
+            markerColor: "#3273dc",
             iconColor: '#FFF'
         });
 
         var marker = L.marker(latlon, opts);
         layer_group.addLayer(marker).addTo(self._map);
+
+        marker.on("click", function(e) {
+            console.log(row.value);
+        });
     }
+
+
+    self.show.device = function() {
+        console.log("[map] show device");
+        initLayerGroup("device");
+
+        if (!hasLayerData("device")) {
+            LX.Model.findDevices()
+                .then(function(response) {
+                    console.log(response)
+                    response.rows.forEach(function(row) {
+                        showDevice(row, self.layers.device.all);
+                    });
+                });
+        }
+
+        self._map.addLayer(self.layers.device.all);
+    }
+
+
+    self.hide.device = function() {
+        console.log("[map] hide device");
+        self._map.removeLayer(self.layers.device.all);
+    }
+
+
+    self.focus.device = function() {
+        self.layers.device.all.bringToFront();
+
+    }
+
+
+
+    //----------------------------------------------------------------- Place Layers
+
+    function showPlace(row, layer_group) {
+        var latlon = Geohash.decode(row.key[1]);
+        var opts = {};
+        var icon = "flag";
+        opts.icon = L.icon.fontAwesome({ 
+            iconClasses: 'fa fa-'+icon,
+            markerColor: "#4E535D",
+            iconColor: '#FFF'
+        });
+
+        var marker = L.marker(latlon, opts);
+        layer_group.addLayer(marker).addTo(self._map);
+
+        marker.on("click", function(e) {
+            console.log(row.value);
+        });
+
+
+    }
+
 
 
     self.show.place = function() {
@@ -147,13 +209,52 @@ LX.Map = (function() {
 
 
 
+   //----------------------------------------------------------------- Route Layers
+
+    self.showOneRoute = function(route) {
+
+
+        // var layer_group = self.layers["route"].all;
+
+        // console.log("LAYER GROUP", layer_group);
+
+        var latlngs = [];
+        route.gp.forEach(function(geo) {
+            latlngs.push(Geohash.decode(geo));
+        });
+
+        console.log("SHOWING ROUTE", latlngs);
+
+        var control = L.Routing.control({
+            waypoints: latlngs,
+            routeWhileDragging: true
+        });
+
+        control.addTo(self._map);
+
+
+    }
+
+    self.show.route = function() {
+        console.log("[map] show route layer");
+        initLayerGroup("route");
+        self._map.addLayer(self.layers.route.all);
+    }
+
+
+    self.hide.vehicle = function() {
+        console.log("[map] hide route");
+        self._map.removeLayer(self.layers.route.all);
+    }
+
+
     //----------------------------------------------------------------- Vehicle Layers
 
     function showVehicle(row, layer_group) {
         var latlon = Geohash.decode(row.key[1]);
         var opts = {};
         var icon = "truck";
-        opts.icon = L.icon.fontAwesome({ 
+        opts.icon = L.icon.fontAwesomeCircle({ 
             iconClasses: 'fa fa-'+icon,
             markerColor: "#6FB1FA",
             iconColor: '#FFF',
@@ -161,6 +262,12 @@ LX.Map = (function() {
 
         var marker = L.marker(latlon, opts);
         layer_group.addLayer(marker).addTo(self._map);
+
+
+        marker.on("click", function(e) {
+            console.log(row.value);
+        });
+
     }
 
 
@@ -198,11 +305,17 @@ LX.Map = (function() {
         opts.icon = L.icon.fontAwesomeCircle({ 
             iconClasses: 'fa fa-'+icon,
             iconColor: "#"+color,
-            markerColor: '#FFF',
             markerStroke:"#"+color
         });
         var marker = L.marker(latlon, opts);
         layer_group.addLayer(marker).addTo(self._map);
+
+
+
+        marker.on("click", function(e) {
+            console.log(row.value);
+        });
+        
     }
 
     self.show.request = function() {
@@ -220,7 +333,7 @@ LX.Map = (function() {
             });
         }
 
-        self._map.addLayer(self.layers.request.all);
+        self._map.addLayer(self.layers.request.all, true);
 
     }
 
@@ -281,6 +394,10 @@ LX.Map = (function() {
             self._map.removeLayer(self.layers.fire[idx]);
         }
     }
+
+
+
+
 
 	return self;
 

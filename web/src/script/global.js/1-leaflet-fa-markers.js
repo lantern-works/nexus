@@ -99,8 +99,13 @@ L.Icon.FontAwesomeCircle = L.Icon.extend({
         var iconSpan = L.DomUtil.create('span', options.iconClasses + ' feature-icon');
         iconSpan.style.color = options.iconColor;
         iconSpan.style.textAlign = 'center';
-        iconSpan.style.backgroundColor = options.markerColor;
         iconSpan.style.borderColor = options.markerStroke;
+
+        if(options.markerColor) {
+            iconSpan.style.backgroundColor = options.markerColor;
+        }
+
+
 
         // XY position adjustments
         if(options.iconYOffset && options.iconYOffset != 0) iconSpan.style.marginTop = options.iconYOffset + 'px';
@@ -108,7 +113,7 @@ L.Icon.FontAwesomeCircle = L.Icon.extend({
 
         // marker icon L.DomUtil doesn't seem to like svg, just append out html directly
         var markerSvg = document.createElement('div');
-        markerSvg.className = "marker-icon-svg";
+        markerSvg.className = "marker-icon-svg-circle";
         markerSvg.innerHTML = '<svg ' +
             'width="32px" ' +
             'height="52px" ' +

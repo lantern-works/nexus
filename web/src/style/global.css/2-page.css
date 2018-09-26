@@ -1,8 +1,12 @@
 @import "bulma/sass/utilities/_all";
 @import "bulma/sass/base/_all";
 @import "bulma/sass/components/navbar";
+@import "bulma/sass/elements/button";
 @import "bulma/sass/elements/form";
 $map-background-water-color: #8dcaf9;
+
+[v-cloak] { display:none }
+
 
 html,body,#map {
     height: 100%;
@@ -15,14 +19,17 @@ html,body,#map {
 
 #map {
 	background: $map-background-water-color;
-	width: 70%;
-	margin-left: 30%;
+	margin-left: 350px;
+
+	.leaflet-routing-container {
+		display: none;
+	}
 }
 
-.navbar.is-fixed-bottom {
-
-	padding-left: 30%;
-	z-index: 1000;
+.navbar.is-fixed-top {
+	display: none;
+	z-index: 2000;
+	opacity: 0.5;
 	.navbar-item {
 		text-transform: lowercase;
 		background: #EEE;
@@ -37,51 +44,132 @@ html,body,#map {
 	.navbar-item.active {
 		background: #999;
 	}
-	box-shadow: 0 0 0 0.2em rgba(0, 0, 0, 0.10);
 }
 
-#chatbox {
-	width: 30%;
+#navbox {
+	border-right: 1px solid #EEE;
+	.logo {
+		background: #FFF;
+		img {
+			width: 40px;
+			margin: 5em auto;
+
+		}	
+	}
+
+	text-align: center;
+	z-index: 3000;
+	width: 50px;
 	height: 100%;
-	background: #FFF;
-	z-index: 1001;
-	box-shadow: 0 0 0 0.2em rgba(0, 0, 0, 0.10);
-	border-left: 1px solid #CCC;
+	background: #4E535D;
 	position: fixed;
 	top: 0;
 	left: 0;
 
+	
+	ul li {
+		font-size: 18pt;
+		color: #FFF;
+		display: block;
+		margin-bottom: 1px;
+		border-radius: 100em;
+
+		line-height: 20px;
+		padding: 0.25em;
+		margin: 2em 0.20em 2em 0.15em;
+
+	}
+
+
+	ul li:hover, ul li.active {
+		background: #FFF;
+		color: #4E535D;
+		cursor:pointer;
+	}
+}
+
+#chatbox {
+	width: 300px;
+	height: 100%;
+	background: #FBFBFB;
+	z-index: 1001;
+	position: fixed;
+	top: 0;
+	left: 50px;
+	border-right: 1px solid #EEE;
+	-webkit-box-shadow: 10px 0px 21px 0px rgba(50, 50, 50, 0.2);
+	-moz-box-shadow:    10px 0px 21px 0px rgba(50, 50, 50, 0.2);
+	box-shadow:         10px 0px 21px 0px rgba(50, 50, 50, 0.2);
 
 
 	.message {
-		margin: 2em;
-		background: #EEE;
+		background: #3273dc;
+		color: #FFF;
+		font-size: 11pt;
+		margin: 1.3em;
 		margin-bottom: 1em;
-		border-radius: 1em;
+		border-radius: 1.2em;
 		padding: 1em;
-		border-top-right-radius: 0px;
+		border-top-left-radius: 0px;
 		margin-right: 5em;
+		filter: drop-shadow(0 0 0.75rem #DDD);
+		font-weight: medium;
+	
+		i {
+			text-align: center;
+		}
 	}
 
 	.my.message {
-		background: #DDD;
-		border-top-right-radius: 1em;
-		border-bottom-left-radius: 0px;
+		background: #FFF;
+		color: #222;
+		border-top-right-radius: 0px;
+		border-top-left-radius: 1.2em;
 		margin-left: 5em;
 		margin-right: 2em;
 	}
 
 	#message-container {
 	  overflow-y: scroll;
-	  height: 90%;
+	  height: 100%;
+	  padding-bottom: 50px;
+
 	}
 
 	.prompt {
-		width: 30%;
-		border-top: 1px solid #DDD;
+		height: 50px;
+		width: 300px;
+
+		-webkit-box-shadow: 10px 0px 21px 0px rgba(50, 50, 50, 0.2);
+		-moz-box-shadow:    10px 0px 21px 0px rgba(50, 50, 50, 0.2);
+		box-shadow:         10px 0px 21px 0px rgba(50, 50, 50, 0.2);
+
+		background: #FFF;
 		position: fixed;
 		bottom: 0;
-		padding: 1em;
-		background: #EEE;
+
+		input {
+			width: 240px;
+			float: left;
+			margin: 0.5em;
+		}
+		a.btn {
+			background: #4E535D;
+			display: block;
+			margin: 8px;
+			margin-left: 256px;
+			border-radius: 100em;
+			color: #FFF;
+			height: 34px;
+			width: 34px;
+			line-height: 34px;
+			text-align: center;
+		}
+		a.btn.active {
+			background: #3273dc;
+		}
+		a.btn:hover {
+			cursor: pointer;
+		}
 	}
 }
