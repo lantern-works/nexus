@@ -44,22 +44,25 @@ wml_credentials={
 "password": "7282de90-ef45-4358-8916-b16b9664f6b3"
 }
 
-headers = urllib3.util.make_headers(basic_auth='{username}:{password}'.format(username=wml_credentials['username'],
-                                                                              password=wml_credentials['password']))
+headers = urllib3.util.make_headers(basic_auth='{username}:{password}'.format(username=wml_credentials['username'], password=wml_credentials['password']))
 url = '{}/v3/identity/token'.format(wml_credentials['url'])
 response = requests.get(url, headers=headers)
 mltoken = json.loads(response.text).get('token')
+
 header = {'Content-Type': 'application/json', 'Authorization': 'Bearer ' + mltoken}
 
-
-payload_scoring = {"fields": ["Distance_from_disaster_spot", \
-                              "Area_Population", "Number_of_service_requests", \
-                              "Infant_population", "Aged_population", "Emergency_level",\
-                              "Hours_since_last_supply", "Quality_score"], \
+# NOTE: manually define and pass the array(s) of values to be scored in the next line
+payload_scoring = {"fields": ["Distance_from_disaster_spot",
+                              "Area_Population",
+                              "Number_of_service_requests",
+                              "Infant_population",
+                              "Aged_population",
+                              "Emergency_level",
+                              "Hours_since_last_supply",
+                              "Quality_score"],
                    "values": test_data}
 
-
-response_scoring = requests.post('https://us-south.ml.cloud.ibm.com/v3/wml_instances/c9755156-1957-43d7-97eb-c8a735211ef1/deployments/a7388ee3-938e-41a8-96b8-473856d03e8c/online', json=payload_scoring, headers=header)
+response_scoring = requests.post('https://us-south.ml.cloud.ibm.com/v3/wml_instances/c9755156-1957-43d7-97eb-c8a735211ef1/deployments/36a5b50e-3a3a-46b1-b007-e85e6007bc90/online', json=payload_scoring, headers=header)
 print("Scoring response")
 
 format_results(response_scoring)
