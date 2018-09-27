@@ -7,15 +7,14 @@ import pickle
 grouped_docs = getDocsForEvents(["e:boston_X8E29", "e:boston_19EC4"])
 
 for kind, docs in grouped_docs.items():
-	print(kind + "--------")
-	for doc in docs:
-		print(doc)
-    print("\n")
-
-	print("\n\n")
-
+    print(kind + "--------")
+    for doc in docs:
+        print(doc);
+    print('\n')
+print("\n\n")
 
 writeCSV("boston_flood_training.csv", grouped_docs)
+
 
 def normalize_data(file_name):
     min_max_scaler = preprocessing.MinMaxScaler()
@@ -39,4 +38,3 @@ def normalize_data(file_name):
     df_normalized.to_csv('normalized_boston_flood_training.csv', index=False)
 
     return print('done')
-
