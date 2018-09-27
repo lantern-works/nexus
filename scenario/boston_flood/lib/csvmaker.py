@@ -13,11 +13,12 @@ scenario_total_population = np.random.randint(low=2000,high=15001,size=(2000,))
 scenario_total_infant_population = np.random.randint(low=2000,high=150001,size=(2000,))
 scenario_total_aged_population = np.random.randint(low=2000,high=100001,size=(2000,))
 scenario_type = 1 # flood scenario
-scenario_ideal_distribution  = scenario_Hours_since_last_supply + 4*scenario_number_of_requests \
+scenario_ideal_distribution = scenario_Hours_since_last_supply + 4*scenario_number_of_requests \
                              + np.log(scenario_total_population)\
                              + np.log(2*scenario_total_infant_population)\
                              + np.log(scenario_total_aged_population)\
-                             +np.exp(scenario_emergency_level) # water in liters per truck route @todo calculate this intelligently
+                             + np.exp(scenario_emergency_level) # water in liters per truck route @todo calculate this intelligently
+                             + np.random.randn(2000,)
 scenario_optimal_number_of_trucks = 1
 scenario_start = moment.utc(2018, 9, 6) # date of disaster start # 5856 -jan , 1224 - july
 
