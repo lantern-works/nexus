@@ -133,20 +133,23 @@ def addVenue(title, id=None, lat=None, lon=None, cat=None, parents=[]):
 
 	return venue
 
-spl = addVenue("Sommerville Public Library", id="spl", lat=42.3847231, lon=-71.0958602, cat="bld", parents=[2,3])
-jmp = addVenue("Joe Moakley Park", id="jmp", lat=42.322418, lon=-71.050986, cat="prk", parents=[3])
-psc = addVenue("Park Street Chuch", id="psc", lat=42.3566598, lon=-71.065598, cat="bld", parents=[1,2,3])
-fen = addVenue("Fenway Park", id="fen", lat=42.345829, lon=-71.096882, cat="prk", parents=[1,2,3])
-frn = addVenue("Franklin Park", id="frn", lat=42.313245, lon=-71.095177, cat="prk", parents=[1,2,3])
-bwf = addVenue("Whole Foods", id="bwf", lat=42.3429892, lon=-71.0910806, cat="bld", parents=[2,3])
+# spl = addVenue("Sommerville Public Library", id="spl", lat=42.3847231, lon=-71.0958602, cat="bld", parents=[2,3])
+# jmp = addVenue("Joe Moakley Park", id="jmp", lat=42.322418, lon=-71.050986, cat="prk", parents=[3])
+# psc = addVenue("Park Street Chuch", id="psc", lat=42.3566598, lon=-71.065598, cat="bld", parents=[1,2,3])
+# fen = addVenue("Fenway Park", id="fen", lat=42.345829, lon=-71.096882, cat="prk", parents=[1,2,3])
+# frn = addVenue("Franklin Park", id="frn", lat=42.313245, lon=-71.095177, cat="prk", parents=[1,2,3])
+# bwf = addVenue("Whole Foods", id="bwf", lat=42.3429892, lon=-71.0910806, cat="bld", parents=[2,3])
 bwt = addVenue("Boston Water Truck", id="bwt", lat=42.3466703, lon=-71.094841, cat="trk", parents=[3])
+mst = addVenue("Medical Supply Truck", id="mst", lat=42.353157, lon=-71.122934, cat="trk", parents=[3])
+djv = addVenue("Donations Jeep", id="djv", lat=42.304363, lon=-71.115425, cat="trk", parents=[3])
+djt = addVenue("Donations Truck", id="djt", lat=42.293899, lon=-71.062877, cat="trk", parents=[3])
 
 def generateVenues():
 	print("\n\ngenerating venues...\n")
 
 	for venue in venues:
 		pp.pprint(venue)
-		saveDoc(venue, resave=False)
+		saveDoc(venue, resave=True)
 
 
 
@@ -218,26 +221,26 @@ def addItem(venue=[],cat="", event=None):
 	items.append(item)
 	return item
 
-# add supplies for current storm event
-addItem(venue=fen, cat="bed", event=events[2])
-addItem(venue=fen, cat="pwr", event=events[2])
-addItem(venue=bwf, cat="wtr", event=events[2])
-addItem(venue=bwf, cat="eat", event=events[2])
-addItem(venue=bwf, cat="wtr", event=events[1])
-addItem(venue=bwf, cat="wtr", event=events[0])
+# # add supplies for current storm event
+# addItem(venue=fen, cat="bed", event=events[2])
+# addItem(venue=fen, cat="pwr", event=events[2])
+# addItem(venue=bwf, cat="wtr", event=events[2])
+# addItem(venue=bwf, cat="eat", event=events[2])
+# addItem(venue=bwf, cat="wtr", event=events[1])
+# addItem(venue=bwf, cat="wtr", event=events[0])
 
 
-addItem(venue=jmp, cat="clo", event=events[2])
+# addItem(venue=jmp, cat="clo", event=events[2])
 
-addItem(venue=psc, cat="eat", event=events[2])
-addItem(venue=psc, cat="med", event=events[2])
+# addItem(venue=psc, cat="eat", event=events[2])
+# addItem(venue=psc, cat="med", event=events[2])
 
-addItem(venue=bwt, cat="wtr", event=events[2])
+# addItem(venue=bwt, cat="wtr", event=events[2])
 
-addItem(venue=frn, cat="bed", event=events[2])
-addItem(venue=frn, cat="wtr", event=events[2])
+# addItem(venue=frn, cat="bed", event=events[2])
+# addItem(venue=frn, cat="wtr", event=events[2])
 
-addItem(venue=spl, cat="net", event=events[2])
+# addItem(venue=spl, cat="net", event=events[2])
 
 
 
@@ -315,6 +318,6 @@ def generateRoutes():
 #generateEvents()
 #generateItems()
 #generateRequests()
-#generateVenues()
+generateVenues()
 #generateDevices()
-generateRoutes()
+#generateRoutes()
