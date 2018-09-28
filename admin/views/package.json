@@ -1,5 +1,5 @@
 {
-    "name": "lantern-nexus-query",
+    "name": "lantern-nexus-views",
     "version": "0.0.1",
     "dependencies": {
         "pouchdb": "*",

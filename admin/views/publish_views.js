@@ -9,7 +9,7 @@ log.setLevel("debug");
 const host = "37bd9e99-2780-4965-8da8-b6b1ebb682bc-bluemix.cloudant.com"
 const cloudant_uri = "https://" + host + "/lantern-boston-flood-scenario"
 var final_uri = cloudant_uri.replace("://", "://" + process.env.CLOUDANT_API_KEY + ":" + process.env.CLOUDANT_API_PASS + "@");
-var db = new PouchDB(final_uri); 
+var db = new PouchDB("https://lantern.global/lnt/"); 
 
 
 
