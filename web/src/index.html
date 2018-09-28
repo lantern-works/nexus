@@ -13,9 +13,7 @@ block content
 
 
     #navbox
-        .logo
-            img(src="./style/logo.png")
-
+        .logo IRIS
         ul
             li(@click="handleNavButton('route')")
                 .icon
@@ -27,6 +25,8 @@ block content
                 .icon
                     i.fas.fa-bullhorn
 
+
+          
     #chatbox.has-shadow
         #message-container(v-cloak)
             div(:class="(message.me ? 'my message' : 'bot message')" v-for="message in messages") 

@@ -3397,7 +3397,7 @@ html, body, #map {
     background: #999; }
 
 #navbox {
-  border-right: 1px solid #EEE;
+  border-right: 1px solid #EFEFEF;
   text-align: center;
   z-index: 3000;
   width: 50px;
@@ -3407,7 +3407,9 @@ html, body, #map {
   top: 0;
   left: 0; }
   #navbox .logo {
-    background: #FFF; }
+    background: #FFF;
+    font-weight: bold;
+    padding: 0.8em 0em; }
     #navbox .logo img {
       width: 40px;
       margin: 5em auto; }

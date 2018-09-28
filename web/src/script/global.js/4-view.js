@@ -13,7 +13,7 @@ function findObjectIndexByKey(array, key, value) {
 LX.View = (function() {
 
     var marker_types = {
-        "d": "device broadcasting data",
+        "d": "Lantern device broadcasting data",
         "i": "supply item",
         "q": "supply request",
         "v": "venue"

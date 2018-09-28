@@ -30,6 +30,8 @@ html,body,#map {
 	display: none;
 	z-index: 2000;
 	opacity: 0.5;
+
+
 	.navbar-item {
 		text-transform: lowercase;
 		background: #EEE;
@@ -47,7 +49,7 @@ html,body,#map {
 }
 
 #navbox {
-	border-right: 1px solid #EEE;
+	border-right: 1px solid #EFEFEF;
 	.logo {
 		background: #FFF;
 		img {
@@ -55,7 +57,13 @@ html,body,#map {
 			margin: 5em auto;
 
 		}	
+
+		font-weight: bold;
+		padding: 0.8em 0em;
+		
+
 	}
+
 
 	text-align: center;
 	z-index: 3000;
@@ -79,7 +87,6 @@ html,body,#map {
 		margin: 2em 0.20em 2em 0.15em;
 
 	}
-
 
 	ul li:hover, ul li.active {
 		background: #FFF;

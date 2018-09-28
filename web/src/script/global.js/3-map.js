@@ -115,7 +115,7 @@ LX.Map = (function(onClick) {
         console.log(latlon)
         opts.icon = L.icon.fontAwesome({ 
             iconClasses: 'fa fa-'+icon,
-            markerColor: "#3273dc",
+            markerColor: "#f1b257",
             iconColor: '#FFF'
         });
 
@@ -167,7 +167,7 @@ LX.Map = (function(onClick) {
         var icon = "flag";
         opts.icon = L.icon.fontAwesome({ 
             iconClasses: 'fa fa-'+icon,
-            markerColor: "#4E535D",
+            markerColor: "#eb4459",
             iconColor: '#FFF'
         });
 
@@ -254,15 +254,18 @@ LX.Map = (function(onClick) {
         var latlon = Geohash.decode(row.key[1]);
         var opts = {};
         var icon = "truck";
-        opts.icon = L.icon.fontAwesomeCircle({ 
+        opts.icon = L.icon.fontAwesome({ 
             iconClasses: 'fa fa-'+icon,
-            markerColor: "#6FB1FA",
+            markerColor: "#3273dc",
             iconColor: '#FFF',
         });
 
         var marker = L.marker(latlon, opts);
         layer_group.addLayer(marker).addTo(self._map);
 
+        setTimeout(function() {
+            layer_group.bringToFront();
+        }, 200);
 
         marker.on("click", function(e) {
             onClick(row.value);
