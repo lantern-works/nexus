@@ -24,6 +24,10 @@ def format_results(response):
     scaler = joblib.load('data_scaler.joblib')
     _scaled_data = scaler.inverse_transform(o)
     scaled_data = _scaled_data.tolist()
+
+    for i in range(len(o)):
+        scaled_data[i][5] = o[i][5]
+
     for i in range(len(scaled_data)):
         result['values'][i][:8] = scaled_data[i][0:8]
         result['values'][i][-1] = scaled_data[i][-1]
@@ -44,6 +48,7 @@ wml_credentials={
 "password": "7282de90-ef45-4358-8916-b16b9664f6b3"
 }
 
+
 headers = urllib3.util.make_headers(basic_auth='{username}:{password}'.format(username=wml_credentials['username'], password=wml_credentials['password']))
 url = '{}/v3/identity/token'.format(wml_credentials['url'])
 response = requests.get(url, headers=headers)
@@ -62,7 +67,9 @@ payload_scoring = {"fields": ["Distance_from_disaster_spot",
                               "Quality_score"],
                    "values": test_data}
 
-response_scoring = requests.post('https://us-south.ml.cloud.ibm.com/v3/wml_instances/c9755156-1957-43d7-97eb-c8a735211ef1/deployments/36a5b50e-3a3a-46b1-b007-e85e6007bc90/online', json=payload_scoring, headers=header)
+response_scoring = requests.post('https://us-south.ml.cloud.ibm.com/v3/wml_instances/c9755156-1957-43d7-97eb-c8a735211ef1/deployments/d0c9b097-cd7f-4fb3-8b05-e0451211f4cb/online',
+                                 json=payload_scoring, headers=header)
+
 print("Scoring response")
 
 format_results(response_scoring)

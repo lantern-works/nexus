@@ -7,7 +7,7 @@ from sklearn.externals import joblib
 save_path = '~/Desktop/Project_lantern/nexus/scenario/boston_flood/'
 
 
-def drop_redudancies(df):
+def drop_redundancy(df):
     df = df[['Distance_from_disaster_spot', 'Area_Population', 'Number_of_service_requests',
              'Infant_population', 'Aged_population', 'Emergency_level', 'Hours_since_last_supply',
              'Quality_score', 'Ideal_distribution']]
@@ -20,18 +20,21 @@ def split_test_data(df):
     return train_set, test_set
 
 
-def scale_values(df,scaler):
+def scale_values(df, scaler):
     data = df.values.astype(float)
     scaled_data = scaler.transform(data)
+    scaled_data[:, 5] = df['Emergency_level'].values.astype(int)
     df_normalized = pd.DataFrame(scaled_data, columns=list(df.columns.values))
-    print(df_normalized.head())
+    #print(df['Emergency_level'])
+    #df_normalized['Emergency_level'] = df['Emergency_level']
+    print(df_normalized)
     return df_normalized
 
 
 def normalize_data(file_name):
     min_max_scaler = preprocessing.MinMaxScaler()
     df = pd.read_csv(file_name)
-    df = drop_redudancies(df)
+    df = drop_redundancy(df)
     print(df.head())
     print('\n\n')
     data = df.values.astype(float)
