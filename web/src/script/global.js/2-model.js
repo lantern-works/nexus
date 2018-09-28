@@ -19,6 +19,7 @@ LX.Model = (function() {
 			{"id": "device", "name": "Devices", "active": true},
 			{"id": "route", "name": "Routes", "active": true},
 			{"id": "request", "name": "Requests", "active": true},
+			{"id": "flood", "name": "Flood", "active": true},
 			{"id": "fire", "name": "Fires"}
 		];
 	}

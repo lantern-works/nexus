@@ -281,6 +281,9 @@ def generateRoutes():
 			"$ca": event["$ca"]
 		}
 
+
+		route["st"] = event["st"]
+
 		if event["st"] == 3:
 			# complete events might have quality scores for routes that finished
 			route["rt"] = random.randint(1,100)
@@ -303,7 +306,7 @@ def generateRoutes():
 	for route in routes:
 		pp.pprint(route)
 		time.sleep(0.1)
-		saveDoc(route)
+		saveDoc(route, resave=True)
 
 
 
@@ -313,4 +316,5 @@ def generateRoutes():
 #generateItems()
 #generateRequests()
 #generateVenues()
-generateDevices()
+#generateDevices()
+generateRoutes()

@@ -12,6 +12,12 @@ function findObjectIndexByKey(array, key, value) {
 
 LX.View = (function() {
 
+    var marker_types = {
+        "d": "device broadcasting data",
+        "i": "supply item",
+        "q": "supply request",
+        "v": "venue"
+    }
 
     var category_name_map = {
         "wtr": "Water",
@@ -52,7 +58,14 @@ LX.View = (function() {
         });
     }
 
-	self.map = LX.Map();
+	self.map = LX.Map(function(data) {
+        console.log("Clicked on map marker: ", data);
+        var str = "This is a " + marker_types[data._id[0]];
+        if (data.tt) {
+            str += " named " + data.tt;
+        }
+        addBotMessage(str+".");
+    });
 
 
 
@@ -250,7 +263,13 @@ LX.View = (function() {
 
         console.log("chat context", self.ctx, reply);
         
-        addBotMessage(reply.output.text.join(" "));
+        for (var idx in reply.output) {
+            reply.output[idx].forEach(function(out) {
+                if (out.response_type == "text") {
+                    addBotMessage(out.text);
+                }
+            })
+        }
 
         if (main_intent == "map-display" || main_intent == "place-only" || main_intent == "event-only" || main_intent == "map-zoom-in-place") {
             var location = "";

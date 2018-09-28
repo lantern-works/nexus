@@ -165,6 +165,7 @@ LX.Model = (function() {
 			{"id": "device", "name": "Devices", "active": true},
 			{"id": "route", "name": "Routes", "active": true},
 			{"id": "request", "name": "Requests", "active": true},
+			{"id": "flood", "name": "Flood", "active": true},
 			{"id": "fire", "name": "Fires"}
 		];
 	}
@@ -296,7 +297,7 @@ LX.Model = (function() {
 var LX = window.LX || {};
 window.LX = LX;
 
-LX.Map = (function() {
+LX.Map = (function(onClick) {
 
     var category_icon_map = {
         "wtr": "tint",
@@ -418,7 +419,7 @@ LX.Map = (function() {
         layer_group.addLayer(marker).addTo(self._map);
 
         marker.on("click", function(e) {
-            console.log(row.value);
+            onClick(row.value);
         });
     }
 
@@ -470,7 +471,7 @@ LX.Map = (function() {
         layer_group.addLayer(marker).addTo(self._map);
 
         marker.on("click", function(e) {
-            console.log(row.value);
+            onClick(row.value);
         });
 
 
@@ -560,7 +561,7 @@ LX.Map = (function() {
 
 
         marker.on("click", function(e) {
-            console.log(row.value);
+            onClick(row.value);
         });
 
     }
@@ -608,7 +609,7 @@ LX.Map = (function() {
 
 
         marker.on("click", function(e) {
-            console.log(row.value);
+           onClick(row.value);
         });
         
     }
@@ -694,6 +695,50 @@ LX.Map = (function() {
 
 
 
+    //----------------------------------------------------------------- Flood Layers
+
+    // @todo lewverage weather data as with fire
+    function showFlood() {
+
+
+        var bounds = L.latLngBounds([[ 42.35298925, -71.12], [42.33221, -71.10]]);
+        var overlay = L.imageOverlay("/style/flood.png", bounds, {} );
+        overlay.addTo(self._map);
+
+
+        var bounds = L.latLngBounds([[ 42.32, -71.05], [42.31221, -71.03]]);
+        var overlay2 = L.imageOverlay("/style/flood2.png", bounds, {} );
+        overlay2.addTo(self._map);
+    }
+
+
+
+    self.show.flood = function() {
+
+        console.log("[map] show flood");
+
+        // @todo united states and nearby only for now
+        LX.Model.getUnitedStatesGeohash().forEach(function(gh) {
+            
+            initLayerGroup("flood", gh);
+
+            if (!hasLayerData("flood", gh)) {
+                console.log("[map] looking for flood:" +  gh)
+                showFlood();
+            }
+            
+            self._map.addLayer(self.layers.flood[gh]);
+            
+        });
+    }
+
+    self.hide.flood = function() {
+        console.log("[map] hide flood");
+        for (var idx in self.layers.flood) {
+            self._map.removeLayer(self.layers.flood[idx]);
+        }
+    }
+
 	return self;
 
 });
@@ -711,6 +756,12 @@ function findObjectIndexByKey(array, key, value) {
 
 LX.View = (function() {
 
+    var marker_types = {
+        "d": "device broadcasting data",
+        "i": "supply item",
+        "q": "supply request",
+        "v": "venue"
+    }
 
     var category_name_map = {
         "wtr": "Water",
@@ -751,7 +802,14 @@ LX.View = (function() {
         });
     }
 
-	self.map = LX.Map();
+	self.map = LX.Map(function(data) {
+        console.log("Clicked on map marker: ", data);
+        var str = "This is a " + marker_types[data._id[0]];
+        if (data.tt) {
+            str += " named " + data.tt;
+        }
+        addBotMessage(str+".");
+    });
 
 
 
@@ -949,7 +1007,13 @@ LX.View = (function() {
 
         console.log("chat context", self.ctx, reply);
         
-        addBotMessage(reply.output.text.join(" "));
+        for (var idx in reply.output) {
+            reply.output[idx].forEach(function(out) {
+                if (out.response_type == "text") {
+                    addBotMessage(out.text);
+                }
+            })
+        }
 
         if (main_intent == "map-display" || main_intent == "place-only" || main_intent == "event-only" || main_intent == "map-zoom-in-place") {
             var location = "";

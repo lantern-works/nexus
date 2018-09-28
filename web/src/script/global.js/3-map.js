@@ -1,7 +1,7 @@
 var LX = window.LX || {};
 window.LX = LX;
 
-LX.Map = (function() {
+LX.Map = (function(onClick) {
 
     var category_icon_map = {
         "wtr": "tint",
@@ -123,7 +123,7 @@ LX.Map = (function() {
         layer_group.addLayer(marker).addTo(self._map);
 
         marker.on("click", function(e) {
-            console.log(row.value);
+            onClick(row.value);
         });
     }
 
@@ -175,7 +175,7 @@ LX.Map = (function() {
         layer_group.addLayer(marker).addTo(self._map);
 
         marker.on("click", function(e) {
-            console.log(row.value);
+            onClick(row.value);
         });
 
 
@@ -265,7 +265,7 @@ LX.Map = (function() {
 
 
         marker.on("click", function(e) {
-            console.log(row.value);
+            onClick(row.value);
         });
 
     }
@@ -313,7 +313,7 @@ LX.Map = (function() {
 
 
         marker.on("click", function(e) {
-            console.log(row.value);
+           onClick(row.value);
         });
         
     }
@@ -398,6 +398,50 @@ LX.Map = (function() {
 
 
 
+
+    //----------------------------------------------------------------- Flood Layers
+
+    // @todo lewverage weather data as with fire
+    function showFlood() {
+
+
+        var bounds = L.latLngBounds([[ 42.35298925, -71.12], [42.33221, -71.10]]);
+        var overlay = L.imageOverlay("/style/flood.png", bounds, {} );
+        overlay.addTo(self._map);
+
+
+        var bounds = L.latLngBounds([[ 42.32, -71.05], [42.31221, -71.03]]);
+        var overlay2 = L.imageOverlay("/style/flood2.png", bounds, {} );
+        overlay2.addTo(self._map);
+    }
+
+
+
+    self.show.flood = function() {
+
+        console.log("[map] show flood");
+
+        // @todo united states and nearby only for now
+        LX.Model.getUnitedStatesGeohash().forEach(function(gh) {
+            
+            initLayerGroup("flood", gh);
+
+            if (!hasLayerData("flood", gh)) {
+                console.log("[map] looking for flood:" +  gh)
+                showFlood();
+            }
+            
+            self._map.addLayer(self.layers.flood[gh]);
+            
+        });
+    }
+
+    self.hide.flood = function() {
+        console.log("[map] hide flood");
+        for (var idx in self.layers.flood) {
+            self._map.removeLayer(self.layers.flood[idx]);
+        }
+    }
 
 	return self;
 
