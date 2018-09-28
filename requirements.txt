@@ -2,3 +2,7 @@ pycouchdb
 requests
 pygeohash
 moment
+pandas
+joblib
+numpy
+preprocessing

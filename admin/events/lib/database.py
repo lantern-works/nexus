@@ -1,15 +1,9 @@
-import os,pycouchdb,pprint
+import pycouchdb,pprint
 import json,random,time
 import pygeohash as pg
 
 # used to generate geohash variations
 __base32 = '0123456789bcdefghjkmnpqrstuvwxyz'
-
-
-# setup database connector
-#uri = "https://" + os.environ['CLOUDANT_API_KEY'] + ":" + os.environ['CLOUDANT_API_PASS'] + "@37bd9e99-2780-4965-8da8-b6b1ebb682bc-bluemix.cloudant.com"
-#db = server.database("lantern-boston-flood-scenario")
-
 
 
 uri = "https://lantern.global"
@@ -166,15 +160,6 @@ def addRoute(id, event=None, from_venue=None, to_venue=None):
 
 
 
-def hasParent(doc, event_list):
-	parent_match = False
-	print(event_list, doc)
-	for event_id in event_list:
-		if event_id in doc["pt"]:
-			parent_match = True
-	return parent_match
-
-
 def addVenue(title, id=None, lat=None, lon=None, cat=None, parents=[]):
 	venue = {
 		"_id": "v:"+id,
@@ -195,27 +180,3 @@ def addVenue(title, id=None, lat=None, lon=None, cat=None, parents=[]):
 	docs["venue"].append(venue)
 
 	return venue
-
-def getDocsForEvents(event_list):
-	all_docs = db.all()
-
-	data = {
-		"events": [],
-		"venues": [],
-		"items": [],
-		"routes": []
-	}
-
-	for row in all_docs:
-		doc = row["doc"]
-
-		# events that match requested event ids
-		if doc["_id"][0] == "e":
-			if doc["_id"] in event_list:
-				data["events"].append(doc)
-
-		# all other documents that have events as a parent
-		elif hasParent(doc, event_list):
-			data[key_map[doc["_id"][0]]].append(doc)
-
-	return data

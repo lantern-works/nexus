@@ -4,8 +4,6 @@ import pandas as pd
 from sklearn import preprocessing
 from sklearn.externals import joblib
 
-save_path = '~/Desktop/Project_lantern/nexus/scenario/boston_flood/'
-
 
 def drop_redundancy(df):
     df = df[['Distance_from_disaster_spot', 'Area_Population', 'Number_of_service_requests',
