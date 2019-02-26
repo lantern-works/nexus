@@ -25,3 +25,9 @@ IRIS was created to answer the [Call For Code](http://callforcode.org) and may b
 	- [NASA Active Fire Detection](https://earthdata.nasa.gov/earth-observation-data/near-real-time/firms/v1-vnp14imgt)
 	- [US Census Data](https://www.census.gov/data.html)
 	- [Weather Company API](https://business.weather.com/resource/brochure-the-weather-company-data-package-enhanced-current-conditions)
+
+# License
+
+This code pattern is licensed under the Apache Software License, Version 2.  Separate third party code objects invoked within this code pattern are licensed by their respective providers pursuant to their own separate licenses. Contributions are subject to the [Developer Certificate of Origin, Version 1.1 (DCO)](https://developercertificate.org/) and the [Apache Software License, Version 2](https://www.apache.org/licenses/LICENSE-2.0.txt).
+
+[Apache Software License (ASL) FAQ](https://www.apache.org/foundation/license-faq.html#WhatDoesItMEAN)
